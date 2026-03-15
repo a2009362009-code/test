@@ -3,6 +3,7 @@ services:
     name: barbershop-booking-api
     runtime: node
     plan: free
+    region: frankfurt
     branch: master
     buildCommand: npm ci
     startCommand: npm start
