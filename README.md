@@ -1,0 +1,64 @@
+# Barbershop Booking API
+
+Backend API for the barbershop booking MVP described in `Barber_Shop_Research_SRS.docx`.
+
+## Quick start
+
+1. Install deps:
+   - `npm install`
+2. Configure env:
+   - Copy `.env.example` to `.env` and update values.
+3. Prepare database:
+   - Create database: `createdb barbershop`
+   - Run schema: `psql -d barbershop -f db/schema.sql`
+   - Seed data: `psql -d barbershop -f db/seed.sql`
+4. Start server:
+   - `npm run dev` (or `npm start`)
+
+Server runs on `http://localhost:4000` by default.
+
+## API endpoints
+
+Public:
+- `GET /api/health`
+- `GET /api/barbers`
+- `GET /api/services`
+- `GET /api/slots?date=YYYY-MM-DD&barberId=1`
+- `POST /api/bookings`
+
+Admin:
+- `POST /api/admin/login`
+- `GET /api/admin/bookings?date=YYYY-MM-DD&barberId=1`
+- `DELETE /api/admin/bookings/:id`
+- `GET /api/admin/slots?date=YYYY-MM-DD&barberId=1&status=available`
+- `POST /api/admin/slots`
+- `DELETE /api/admin/slots/:id`
+
+## Request examples
+
+Create booking:
+```bash
+curl -X POST http://localhost:4000/api/bookings \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientName": "Aidar",
+    "clientPhone": "+996700000000",
+    "serviceId": 1,
+    "barberId": 1,
+    "date": "2026-03-20",
+    "time": "10:30"
+  }'
+```
+
+Create slots (admin):
+```bash
+curl -X POST http://localhost:4000/api/admin/slots \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "barberId": 1,
+    "date": "2026-03-20",
+    "times": ["10:00", "10:30", "11:00"],
+    "status": "available"
+  }'
+```

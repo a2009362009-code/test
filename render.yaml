@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: barbershop-booking-api
+    runtime: node
+    plan: free
+    branch: master
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: barbershop-postgres
+          property: connectionString
+      - key: PGSSL
+        value: "true"
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+
+databases:
+  - name: barbershop-postgres
+    databaseName: barbershop
+    user: barbershop
+    plan: free
+    postgresMajorVersion: "15"
+    ipAllowList: []
