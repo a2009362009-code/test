@@ -7,20 +7,15 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+  Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import type { Master } from "@/data/masters";
 import { services, type Service } from "@/data/services";
 import { toast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 
 const timeSlots = [
   "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -40,34 +35,25 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const { tr, price } = useI18n();
 
   const relevantServices = services.filter((s) => {
     const specialties = master.specialties.map((sp) => sp.toLowerCase());
     return specialties.some(
-      (sp) =>
-        s.name.toLowerCase().includes(sp.split(" ")[0]) ||
-        sp.includes(s.name.toLowerCase().split(" ")[0])
+      (sp) => s.name.toLowerCase().includes(sp.split(" ")[0]) || sp.includes(s.name.toLowerCase().split(" ")[0])
     );
   });
 
   const availableServices = relevantServices.length > 0 ? relevantServices : services;
 
-  const reset = () => {
-    setStep(1);
-    setSelectedService(null);
-    setSelectedDate(undefined);
-    setSelectedTime(null);
-  };
+  const reset = () => { setStep(1); setSelectedService(null); setSelectedDate(undefined); setSelectedTime(null); };
 
-  const handleClose = (v: boolean) => {
-    if (!v) reset();
-    onOpenChange(v);
-  };
+  const handleClose = (v: boolean) => { if (!v) reset(); onOpenChange(v); };
 
   const handleConfirm = () => {
     setStep(4);
     toast({
-      title: "Жазылуу ийгиликтүү!",
+      title: tr("booking.successtoast"),
       description: `${master.name} — ${selectedService?.name}, ${format(selectedDate!, "d MMMM", { locale: ru })}, ${selectedTime}`,
     });
   };
@@ -76,58 +62,35 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Мастерге жазылуу</DialogTitle>
-          <DialogDescription>
-            {master.name} • {master.role}
-          </DialogDescription>
+          <DialogTitle>{tr("booking.title")}</DialogTitle>
+          <DialogDescription>{master.name} • {master.role}</DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center gap-2">
           {[1, 2, 3].map((s) => (
-            <div
-              key={s}
-              className={cn(
-                "h-1 flex-1 rounded-full transition-colors",
-                step >= s ? "bg-primary" : "bg-muted"
-              )}
-            />
+            <div key={s} className={cn("h-1 flex-1 rounded-full transition-colors", step >= s ? "bg-primary" : "bg-muted")} />
           ))}
         </div>
 
         <AnimatePresence mode="wait">
           {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-3"
-            >
-              <p className="text-sm font-medium">Кызматты тандаңыз</p>
+            <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-3">
+              <p className="text-sm font-medium">{tr("booking.selectservice")}</p>
               <div className="max-h-60 space-y-2 overflow-y-auto pr-1">
                 {availableServices.map((s) => (
                   <button
                     key={s.id}
-                    onClick={() => {
-                      setSelectedService(s);
-                      setStep(2);
-                    }}
+                    onClick={() => { setSelectedService(s); setStep(2); }}
                     className={cn(
                       "flex w-full items-center justify-between rounded-lg border p-3 text-left transition-all hover:border-primary/50",
-                      selectedService?.id === s.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
+                      selectedService?.id === s.id ? "border-primary bg-primary/5" : "border-border"
                     )}
                   >
                     <div>
                       <span className="text-sm font-medium">{s.name}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        {s.duration}
-                      </span>
+                      <span className="ml-2 text-xs text-muted-foreground">{s.duration}</span>
                     </div>
-                    <span className="text-sm font-semibold tabular-nums">
-                      {s.price} сом
-                    </span>
+                    <span className="text-sm font-semibold tabular-nums">{price(s.price)}</span>
                   </button>
                 ))}
               </div>
@@ -135,62 +98,33 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
           )}
 
           {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-3"
-            >
-              <p className="text-sm font-medium">Күндү тандаңыз</p>
+            <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-3">
+              <p className="text-sm font-medium">{tr("booking.selectdate")}</p>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate
-                      ? format(selectedDate, "d MMMM yyyy", { locale: ru })
-                      : "Күндү тандаңыз"}
+                    {selectedDate ? format(selectedDate, "d MMMM yyyy", { locale: ru }) : tr("booking.pickdate")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
-                    onSelect={(d) => {
-                      setSelectedDate(d);
-                      if (d) setStep(3);
-                    }}
-                    disabled={(date) => {
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      return date < today || date.getDay() === 0;
-                    }}
+                    onSelect={(d) => { setSelectedDate(d); if (d) setStep(3); }}
+                    disabled={(date) => { const today = new Date(); today.setHours(0,0,0,0); return date < today || date.getDay() === 0; }}
                     initialFocus
                     className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
-              <Button variant="ghost" size="sm" onClick={() => setStep(1)}>
-                ← Артка
-              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setStep(1)}>{tr("booking.back")}</Button>
             </motion.div>
           )}
 
           {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-3"
-            >
-              <p className="text-sm font-medium">Убакытты тандаңыз</p>
+            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-3">
+              <p className="text-sm font-medium">{tr("booking.selecttime")}</p>
               <div className="grid grid-cols-4 gap-2">
                 {timeSlots.map((t) => (
                   <button
@@ -198,55 +132,30 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
                     onClick={() => setSelectedTime(t)}
                     className={cn(
                       "flex items-center justify-center gap-1 rounded-lg border px-2 py-2 text-sm transition-all",
-                      selectedTime === t
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border hover:border-primary/50"
+                      selectedTime === t ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/50"
                     )}
                   >
-                    <Clock className="h-3 w-3" />
-                    {t}
+                    <Clock className="h-3 w-3" />{t}
                   </button>
                 ))}
               </div>
               <div className="flex items-center justify-between pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setStep(2)}>
-                  ← Артка
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={!selectedTime}
-                  onClick={handleConfirm}
-                >
-                  Ырастоо
-                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setStep(2)}>{tr("booking.back")}</Button>
+                <Button size="sm" disabled={!selectedTime} onClick={handleConfirm}>{tr("booking.confirm")}</Button>
               </div>
             </motion.div>
           )}
 
           {step === 4 && (
-            <motion.div
-              key="step4"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center gap-4 py-6 text-center"
-            >
+            <motion.div key="step4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-4 py-6 text-center">
               <CheckCircle2 className="h-12 w-12 text-accent" />
               <div>
-                <p className="text-lg font-semibold">Сиз жазылдыңыз!</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {selectedService?.name} — {master.name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedDate && format(selectedDate, "d MMMM yyyy", { locale: ru })},{" "}
-                  {selectedTime}
-                </p>
-                <p className="mt-1 text-sm font-medium">
-                  {selectedService?.price} сом
-                </p>
+                <p className="text-lg font-semibold">{tr("booking.success")}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{selectedService?.name} — {master.name}</p>
+                <p className="text-sm text-muted-foreground">{selectedDate && format(selectedDate, "d MMMM yyyy", { locale: ru })}, {selectedTime}</p>
+                <p className="mt-1 text-sm font-medium">{selectedService && price(selectedService.price)}</p>
               </div>
-              <Button onClick={() => handleClose(false)} className="mt-2">
-                Жабуу
-              </Button>
+              <Button onClick={() => handleClose(false)} className="mt-2">{tr("booking.close")}</Button>
             </motion.div>
           )}
         </AnimatePresence>

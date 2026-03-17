@@ -2,17 +2,20 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const navLinks = [
-  { to: "/", label: "Башкы бет" },
-  { to: "/masters", label: "Мастерлер" },
-  { to: "/shop", label: "Дүкөн" },
-];
+import { useI18n } from "@/lib/i18n";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { tr } = useI18n();
+
+  const navLinks = [
+    { to: "/", label: tr("nav.home") },
+    { to: "/masters", label: tr("nav.masters") },
+    { to: "/shop", label: tr("nav.shop") },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -49,22 +52,26 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="hidden items-center gap-3 md:flex">
+          <LanguageSwitcher />
           <Link
             to="/auth"
             className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
           >
             <User className="h-4 w-4" />
-            Кирүү
+            {tr("nav.login")}
           </Link>
         </div>
 
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden text-foreground"
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher />
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="text-foreground"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </nav>
 
       <AnimatePresence>
@@ -94,7 +101,7 @@ const Navbar = () => {
                 className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
               >
                 <User className="h-4 w-4" />
-                Кирүү
+                {tr("nav.login")}
               </Link>
             </div>
           </motion.div>
