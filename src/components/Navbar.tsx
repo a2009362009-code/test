@@ -4,9 +4,9 @@ import { Menu, X, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
-  { to: "/", label: "Главная" },
-  { to: "/masters", label: "Мастера" },
-  { to: "/shop", label: "Магазин" },
+  { to: "/", label: "Башкы бет" },
+  { to: "/masters", label: "Мастерлер" },
+  { to: "/shop", label: "Дүкөн" },
 ];
 
 const Navbar = () => {
@@ -33,7 +33,6 @@ const Navbar = () => {
           HairLine
         </Link>
 
-        {/* Desktop */}
         <div className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
             <Link
@@ -56,11 +55,10 @@ const Navbar = () => {
             className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
           >
             <User className="h-4 w-4" />
-            Войти
+            Кирүү
           </Link>
         </div>
 
-        {/* Mobile toggle */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="md:hidden text-foreground"
@@ -69,7 +67,6 @@ const Navbar = () => {
         </button>
       </nav>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -97,7 +94,7 @@ const Navbar = () => {
                 className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
               >
                 <User className="h-4 w-4" />
-                Войти
+                Кирүү
               </Link>
             </div>
           </motion.div>
