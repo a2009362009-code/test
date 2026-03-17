@@ -19,9 +19,9 @@ const ProductCard = ({ product }: { product: Product }) => (
       <p className="text-xs text-muted-foreground">{product.type}</p>
       <h3 className="mt-1 text-sm font-semibold tracking-tight">{product.name}</h3>
       <div className="mt-3 flex items-center justify-between">
-        <span className="tabular text-sm font-semibold">{product.price.toLocaleString("ru-RU")} ₽</span>
+        <span className="tabular text-sm font-semibold">{product.price} сом</span>
         <button className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground opacity-0 transition-all duration-200 group-hover:opacity-100 hover:bg-primary/90 active:scale-95">
-          В корзину
+          Себетке
         </button>
       </div>
     </div>

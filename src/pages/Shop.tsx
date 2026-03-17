@@ -16,16 +16,15 @@ const Shop = () => {
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <h1 className="text-3xl font-semibold">Магазин</h1>
-        <p className="mt-2 text-muted-foreground">Профессиональная продукция для домашнего ухода</p>
+        <h1 className="text-3xl font-semibold">Дүкөн</h1>
+        <p className="mt-2 text-muted-foreground">Үйдө күтүм үчүн профессионалдуу продукция</p>
       </motion.div>
 
-      {/* Gender toggle */}
       <div className="mt-8 inline-flex rounded-xl bg-secondary p-1">
         {([
-          ["all", "Все"],
-          ["men", "Мужчинам"],
-          ["women", "Женщинам"],
+          ["all", "Баары"],
+          ["men", "Эркектерге"],
+          ["women", "Аялдарга"],
         ] as [Gender, string][]).map(([value, label]) => (
           <button
             key={value}
@@ -41,7 +40,6 @@ const Shop = () => {
         ))}
       </div>
 
-      {/* Grid */}
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {filtered.map((p, i) => (
           <motion.div
