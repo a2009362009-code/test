@@ -7,6 +7,7 @@ const morgan = require('morgan');
 
 const publicRoutes = require('./routes/public');
 const adminRoutes = require('./routes/admin');
+const { refreshSeeds } = require('./db/seed');
 
 const app = express();
 
@@ -33,6 +34,20 @@ app.use((err, req, res, next) => {
 });
 
 const port = process.env.PORT || 4000;
-app.listen(port, () => {
-  console.log(`API listening on port ${port}`);
-});
+
+async function start() {
+  if (process.env.SEED_ON_START === 'true') {
+    try {
+      await refreshSeeds({ resetDemo: process.env.RESET_DEMO === 'true' });
+      console.log('Seed refresh completed');
+    } catch (err) {
+      console.error('Seed refresh failed', err);
+    }
+  }
+
+  app.listen(port, () => {
+    console.log(`API listening on port ${port}`);
+  });
+}
+
+start();
