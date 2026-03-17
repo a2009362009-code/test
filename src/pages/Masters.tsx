@@ -2,57 +2,70 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { masters } from "@/data/masters";
 import MasterCard from "@/components/MasterCard";
-
-const filters = ["Баары", "Барбер", "Стилист", "Колорист"];
-const locations = ["Баары", "Центр", "Север", "Юг"];
+import { useI18n } from "@/lib/i18n";
 
 const Masters = () => {
-  const [activeFilter, setActiveFilter] = useState("Баары");
-  const [activeLocation, setActiveLocation] = useState("Баары");
+  const { tr } = useI18n();
+
+  const filters = [
+    { key: "all", label: tr("filter.all"), value: "Все" },
+    { key: "barber", label: tr("filter.barber"), value: "Барбер" },
+    { key: "stylist", label: tr("filter.stylist"), value: "Стилист" },
+    { key: "colorist", label: tr("filter.colorist"), value: "Колорист" },
+  ];
+  const locations = [
+    { key: "all", label: tr("filter.all"), value: "Все" },
+    { key: "center", label: tr("filter.center"), value: "Центр" },
+    { key: "north", label: tr("filter.north"), value: "Север" },
+    { key: "south", label: tr("filter.south"), value: "Юг" },
+  ];
+
+  const [activeFilter, setActiveFilter] = useState("Все");
+  const [activeLocation, setActiveLocation] = useState("Все");
 
   const filtered = masters.filter((m) => {
-    const roleMatch = activeFilter === "Баары" || m.role === activeFilter;
-    const locMatch = activeLocation === "Баары" || m.location === activeLocation;
+    const roleMatch = activeFilter === "Все" || m.role === activeFilter;
+    const locMatch = activeLocation === "Все" || m.location === activeLocation;
     return roleMatch && locMatch;
   });
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <h1 className="text-3xl font-semibold">Мастерлер</h1>
-        <p className="mt-2 text-muted-foreground">Мастерди тандап, ыңгайлуу убакытка жазылыңыз</p>
+        <h1 className="text-3xl font-semibold">{tr("masters.page.title")}</h1>
+        <p className="mt-2 text-muted-foreground">{tr("masters.page.subtitle")}</p>
       </motion.div>
 
       <div className="mt-8 flex flex-wrap gap-6">
         <div className="flex flex-wrap gap-2">
-          <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">Адистик</span>
+          <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">{tr("masters.specialty")}</span>
           {filters.map((f) => (
             <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
+              key={f.key}
+              onClick={() => setActiveFilter(f.value)}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
-                activeFilter === f
+                activeFilter === f.value
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
               }`}
             >
-              {f}
+              {f.label}
             </button>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">Локация</span>
+          <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">{tr("masters.location")}</span>
           {locations.map((l) => (
             <button
-              key={l}
-              onClick={() => setActiveLocation(l)}
+              key={l.key}
+              onClick={() => setActiveLocation(l.value)}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
-                activeLocation === l
+                activeLocation === l.value
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
               }`}
             >
-              {l}
+              {l.label}
             </button>
           ))}
         </div>
@@ -73,7 +86,7 @@ const Masters = () => {
 
       {filtered.length === 0 && (
         <div className="mt-16 text-center">
-          <p className="text-muted-foreground">Берилген фильтрлер боюнча мастерлер табылган жок</p>
+          <p className="text-muted-foreground">{tr("masters.notfound")}</p>
         </div>
       )}
     </div>

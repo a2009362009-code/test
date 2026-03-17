@@ -4,9 +4,11 @@ import { Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Master } from "@/data/masters";
 import BookingDialog from "@/components/BookingDialog";
+import { useI18n } from "@/lib/i18n";
 
 const MasterCard = ({ master }: { master: Master }) => {
   const [bookingOpen, setBookingOpen] = useState(false);
+  const { tr } = useI18n();
 
   return (
     <>
@@ -37,21 +39,21 @@ const MasterCard = ({ master }: { master: Master }) => {
             </div>
             {master.available && (
               <span className="inline-flex shrink-0 items-center rounded-full bg-accent/10 px-2 py-1 text-xs font-medium text-accent ring-1 ring-inset ring-accent/20">
-                Бош
+                {tr("master.available")}
               </span>
             )}
           </div>
           <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
             <span className="tabular font-medium text-foreground">{master.rating}</span>
-            <span>• {master.reviews} пикир</span>
+            <span>• {master.reviews} {tr("master.reviews")}</span>
           </div>
           <button
             onClick={() => setBookingOpen(true)}
             disabled={!master.available}
             className="mt-4 flex w-full items-center justify-center rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-all duration-150 hover:bg-primary/90 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none"
           >
-            {master.available ? "Жазылуу" : "Жазылуу жок"}
+            {master.available ? tr("master.book") : tr("master.nobook")}
           </button>
         </div>
       </motion.div>

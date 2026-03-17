@@ -2,11 +2,19 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { products } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
+import { useI18n } from "@/lib/i18n";
 
 type Gender = "all" | "men" | "women";
 
 const Shop = () => {
   const [gender, setGender] = useState<Gender>("all");
+  const { tr } = useI18n();
+
+  const genderOptions: [Gender, string][] = [
+    ["all", tr("shop.all")],
+    ["men", tr("shop.men")],
+    ["women", tr("shop.women")],
+  ];
 
   const filtered = products.filter((p) => {
     if (gender === "all") return true;
@@ -16,16 +24,12 @@ const Shop = () => {
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <h1 className="text-3xl font-semibold">Дүкөн</h1>
-        <p className="mt-2 text-muted-foreground">Үйдө күтүм үчүн профессионалдуу продукция</p>
+        <h1 className="text-3xl font-semibold">{tr("shop.title")}</h1>
+        <p className="mt-2 text-muted-foreground">{tr("shop.subtitle")}</p>
       </motion.div>
 
       <div className="mt-8 inline-flex rounded-xl bg-secondary p-1">
-        {([
-          ["all", "Баары"],
-          ["men", "Эркектерге"],
-          ["women", "Аялдарга"],
-        ] as [Gender, string][]).map(([value, label]) => (
+        {genderOptions.map(([value, label]) => (
           <button
             key={value}
             onClick={() => setGender(value)}
