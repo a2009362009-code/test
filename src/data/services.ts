@@ -7,14 +7,15 @@ export interface Service {
 }
 
 export const services: Service[] = [
-  { id: "s1", name: "Мужская стрижка", duration: "45 мин", price: 500, category: "men" },
-  { id: "s2", name: "Стрижка + укладка", duration: "60 мин", price: 700, category: "men" },
-  { id: "s3", name: "Бритьё опасной бритвой", duration: "30 мин", price: 400, category: "men" },
-  { id: "s4", name: "Дизайн бороды", duration: "30 мин", price: 350, category: "men" },
-  { id: "s5", name: "Женская стрижка", duration: "60 мин", price: 800, category: "women" },
-  { id: "s6", name: "Укладка", duration: "45 мин", price: 600, category: "unisex" },
-  { id: "s7", name: "Окрашивание", duration: "120 мин", price: 2500, category: "women" },
-  { id: "s8", name: "Мелирование", duration: "90 мин", price: 2000, category: "women" },
-  { id: "s9", name: "Балаяж", duration: "120 мин", price: 3000, category: "women" },
-  { id: "s10", name: "Уход за волосами", duration: "60 мин", price: 700, category: "unisex" },
+  { id: "s1", name: "Men haircut", duration: "45 min", price: 500, category: "men" },
+  { id: "s2", name: "Haircut and styling", duration: "60 min", price: 700, category: "men" },
+  { id: "s3", name: "Straight razor shave", duration: "30 min", price: 400, category: "men" },
+  { id: "s4", name: "Beard design", duration: "30 min", price: 350, category: "men" },
+  { id: "s5", name: "Women haircut", duration: "60 min", price: 800, category: "women" },
+  { id: "s6", name: "Styling", duration: "45 min", price: 600, category: "unisex" },
+  { id: "s7", name: "Coloring", duration: "120 min", price: 2500, category: "women" },
+  { id: "s8", name: "Highlights", duration: "90 min", price: 2000, category: "women" },
+  { id: "s9", name: "Balayage", duration: "120 min", price: 3000, category: "women" },
+  { id: "s10", name: "Hair treatment", duration: "60 min", price: 700, category: "unisex" },
 ];
+

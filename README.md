@@ -1,46 +1,58 @@
-# HAIRLINE — Frontend + Backend
+# HAIRLINE - Frontend + Backend
 
-This repository contains both the frontend application and the backend API.
+Monorepo with React frontend and Node.js API.
 
 ## Structure
-1. `./` — Frontend (Vite + React)
-2. `./barbershop-booking-api/` — Backend (Node.js + Express + PostgreSQL)
 
-## Live URLs
-1. Frontend: `https://hairline-style-shop.vercel.app/`
-2. Backend API: `https://barbershop-booking-api.onrender.com`
-3. Swagger: `https://barbershop-booking-api.onrender.com/api/docs/`
+1. `./` - Frontend (Vite + React + TypeScript)
+2. `./barbershop-booking-api/` - Backend (Express + PostgreSQL)
 
-## Local Development
+## Local run
 
-### Backend
+### 1) Backend
+
 ```bash
 cd barbershop-booking-api
 npm install
-```
-
-Create `.env` from `.env.example` and set:
-```
-DATABASE_URL=postgresql://...
-JWT_SECRET=...
-ADMIN_USER=...
-ADMIN_PASSWORD=...
-```
-
-Run:
-```bash
+cp .env.example .env
+npm run migrate:up
+npm run seed:refresh
 npm run dev
 ```
 
-### Frontend
+Backend URL: `http://localhost:4000`
+
+### 2) Frontend
+
 ```bash
+cd ..
 npm install
+cp .env.example .env
+npm run api:types
 npm run dev
 ```
 
-If you connect frontend to the API, make sure backend CORS allows your frontend
-domain (see `barbershop-booking-api/.env.example`).
+Frontend URL: `http://localhost:8080`
 
-## Notes
-1. Backend docs: see `barbershop-booking-api/README.md`
-2. Backend testing: see `barbershop-booking-api/TESTING.md`
+## Contract-first API client
+
+OpenAPI source: `barbershop-booking-api/src/docs/openapi.json`
+
+Generate frontend types:
+
+```bash
+npm run api:types
+```
+
+Generated file: `src/api/generated/openapi.ts`
+
+## CI expectations
+
+- Frontend: install -> lint -> test -> build
+- Backend: install -> migrate -> seed -> smoke test -> integration test
+
+## Deployment URLs
+
+- Frontend: `https://hairline-style-shop.vercel.app/`
+- Backend: `https://barbershop-booking-api.onrender.com`
+- Swagger: `https://barbershop-booking-api.onrender.com/api/docs/`

@@ -1,7 +1,7 @@
-const jwt = require('jsonwebtoken');
+const { getJwtConfig, verifyAccessToken } = require('../auth/jwt');
 
 function requireAuth(req, res, next) {
-  if (!process.env.JWT_SECRET) {
+  if (!getJwtConfig().verificationSecrets.length) {
     return res.status(500).json({ error: 'JWT_SECRET is not configured' });
   }
 
@@ -13,7 +13,7 @@ function requireAuth(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = verifyAccessToken(token);
     req.user = decoded;
     return next();
   } catch (err) {

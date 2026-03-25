@@ -1,57 +1,52 @@
 require('dotenv').config();
 
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const morgan = require('morgan');
-const swaggerUi = require('swagger-ui-express');
-
-const publicRoutes = require('./routes/public');
-const adminRoutes = require('./routes/admin');
+const { createApp } = require('./app');
 const { refreshSeeds } = require('./db/seed');
-const openapi = require('./docs/openapi.json');
+const { getJwtConfig } = require('./auth/jwt');
+const { logger } = require('./utils/logger');
 
-const app = express();
+const app = createApp();
+const port = Number(process.env.PORT || 4000);
 
-const rawCors = (process.env.CORS_ORIGIN || '').trim();
-const corsOrigin = !rawCors || rawCors === '*'
-  ? true
-  : rawCors.split(',').map((o) => o.trim());
+function validateStartupConfig() {
+  const { signingSecret } = getJwtConfig();
+  if (!signingSecret) {
+    logger.warn('JWT secret is not configured. Auth endpoints will return 500.');
+  }
 
-app.use(helmet());
-app.use(cors({ origin: corsOrigin }));
-app.use(express.json({ limit: '1mb' }));
-app.use(morgan('dev'));
-
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapi, { explorer: true }));
-
-app.use('/api', publicRoutes);
-app.use('/api/admin', adminRoutes);
-
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
-
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Server error' });
-});
-
-const port = process.env.PORT || 4000;
+  if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_PASSWORD_HASH) {
+    throw new Error('ADMIN_PASSWORD_HASH is required in production');
+  }
+}
 
 async function start() {
+  validateStartupConfig();
+
   if (process.env.SEED_ON_START === 'true') {
     try {
       await refreshSeeds({ resetDemo: process.env.RESET_DEMO === 'true' });
-      console.log('Seed refresh completed');
+      logger.info('seed.refresh.completed');
     } catch (err) {
-      console.error('Seed refresh failed', err);
+      logger.error('seed.refresh.failed', {
+        errorName: err.name,
+        errorMessage: err.message,
+        stack: err.stack
+      });
     }
   }
 
   app.listen(port, () => {
-    console.log(`API listening on port ${port}`);
+    logger.info('server.started', { port });
   });
 }
 
-start();
+start().catch((err) => {
+  logger.error('server.start.failed', {
+    errorName: err.name,
+    errorMessage: err.message,
+    stack: err.stack
+  });
+  process.exit(1);
+});
+
+module.exports = { app, start };

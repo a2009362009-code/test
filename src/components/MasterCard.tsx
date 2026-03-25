@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n";
 
 const MasterCard = ({ master }: { master: Master }) => {
   const [bookingOpen, setBookingOpen] = useState(false);
-  const { tr } = useI18n();
+  const { tr, tv, formatYears } = useI18n();
 
   return (
     <>
@@ -34,7 +34,7 @@ const MasterCard = ({ master }: { master: Master }) => {
                 <h3 className="text-lg font-semibold tracking-tight">{master.name}</h3>
               </Link>
               <p className="text-sm text-muted-foreground">
-                {master.role} • {master.experience}
+                {tv("role", master.role)} - {formatYears(master.experience)}
               </p>
             </div>
             {master.available && (
@@ -46,7 +46,7 @@ const MasterCard = ({ master }: { master: Master }) => {
           <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
             <span className="tabular font-medium text-foreground">{master.rating}</span>
-            <span>• {master.reviews} {tr("master.reviews")}</span>
+            <span>- {master.reviews} {tr("master.reviews")}</span>
           </div>
           <button
             onClick={() => setBookingOpen(true)}

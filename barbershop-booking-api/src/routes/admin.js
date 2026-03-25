@@ -1,8 +1,10 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { pool } = require('../db/pool');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { signAccessToken, getJwtConfig } = require('../auth/jwt');
+const { createRateLimit } = require('../middleware/rate-limit');
+const { logger } = require('../utils/logger');
 const {
   loginSchema,
   slotCreateSchema,
@@ -14,7 +16,13 @@ const {
 
 const router = express.Router();
 
-router.post('/login', async (req, res) => {
+const adminLoginRateLimiter = createRateLimit({
+  windowMs: process.env.ADMIN_LOGIN_RATE_LIMIT_WINDOW_MS || process.env.AUTH_LOGIN_RATE_LIMIT_WINDOW_MS,
+  max: process.env.ADMIN_LOGIN_RATE_LIMIT_MAX || 5,
+  message: 'Too many admin login attempts. Try again later.'
+});
+
+router.post('/login', adminLoginRateLimiter, async (req, res) => {
   const { data, error } = validate(loginSchema, req.body);
   if (error) {
     return res.status(400).json({ error: 'Invalid payload', details: error.fieldErrors });
@@ -23,9 +31,22 @@ router.post('/login', async (req, res) => {
   const adminUser = process.env.ADMIN_USER || 'admin';
   const adminPassword = process.env.ADMIN_PASSWORD || '';
   const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH || '';
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (isProduction && !adminPasswordHash) {
+    return res.status(500).json({
+      error: 'ADMIN_PASSWORD_HASH is required in production'
+    });
+  }
 
   if (!adminPassword && !adminPasswordHash) {
-    return res.status(500).json({ error: 'Admin credentials are not configured' });
+    return res.status(500).json({
+      error: 'Admin credentials are not configured'
+    });
+  }
+
+  if (isProduction && adminPassword) {
+    logger.warn('ADMIN_PASSWORD is set in production and will be ignored');
   }
 
   if (data.username !== adminUser) {
@@ -35,7 +56,7 @@ router.post('/login', async (req, res) => {
   let valid = false;
   if (adminPasswordHash) {
     valid = await bcrypt.compare(data.password, adminPasswordHash);
-  } else {
+  } else if (!isProduction) {
     valid = data.password === adminPassword;
   }
 
@@ -43,13 +64,12 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  if (!process.env.JWT_SECRET) {
+  if (!getJwtConfig().signingSecret) {
     return res.status(500).json({ error: 'JWT_SECRET is not configured' });
   }
 
-  const token = jwt.sign(
+  const token = signAccessToken(
     { sub: adminUser, role: 'admin' },
-    process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_TTL || '12h' }
   );
 

@@ -1,11 +1,13 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { pool } = require('../db/pool');
+const { signAccessToken, getJwtConfig } = require('../auth/jwt');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { createRateLimit } = require('../middleware/rate-limit');
 const {
   bookingSchema,
   slotQuerySchema,
+  productsQuerySchema,
   registerSchema,
   userLoginSchema,
   validate
@@ -13,14 +15,76 @@ const {
 
 const router = express.Router();
 
+const loginRateLimiter = createRateLimit({
+  windowMs: process.env.AUTH_LOGIN_RATE_LIMIT_WINDOW_MS,
+  max: process.env.AUTH_LOGIN_RATE_LIMIT_MAX,
+  message: 'Too many login attempts. Try again later.'
+});
+
 router.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+router.get('/ready', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ready' });
+  } catch (err) {
+    res.status(503).json({ error: 'Database unavailable' });
+  }
 });
 
 router.get('/barbers', async (req, res, next) => {
   try {
     const result = await pool.query(
-      'SELECT id, name FROM barbers WHERE is_active = true ORDER BY name'
+      `
+      SELECT
+        id,
+        name,
+        role,
+        experience_years,
+        rating,
+        reviews_count,
+        image_url,
+        is_available,
+        specialties,
+        location,
+        bio,
+        is_active,
+        created_at
+      FROM barbers
+      WHERE is_active = true
+      ORDER BY name
+      `
+    );
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/barbers/:id/reviews', async (req, res, next) => {
+  const barberId = Number(req.params.id);
+  if (!Number.isInteger(barberId) || barberId <= 0) {
+    return res.status(400).json({ error: 'Invalid barber id' });
+  }
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        id,
+        barber_id,
+        author_name,
+        rating,
+        comment,
+        created_at
+      FROM reviews
+      WHERE barber_id = $1
+      ORDER BY created_at DESC
+      LIMIT 20
+      `,
+      [barberId]
     );
     res.json(result.rows);
   } catch (err) {
@@ -39,6 +103,47 @@ router.get('/services', async (req, res, next) => {
   }
 });
 
+router.get('/products', async (req, res, next) => {
+  const { data, error } = validate(productsQuerySchema, req.query);
+  if (error) {
+    return res.status(400).json({ error: 'Invalid query', details: error.fieldErrors });
+  }
+
+  try {
+    const params = [];
+    let sql = `
+      SELECT
+        id,
+        name,
+        description,
+        price,
+        image_url,
+        category,
+        type,
+        stock_qty
+      FROM products
+      WHERE is_active = true
+    `;
+
+    if (data.category) {
+      params.push(data.category);
+      sql += ` AND category = $${params.length}`;
+    }
+
+    if (data.type) {
+      params.push(data.type);
+      sql += ` AND type = $${params.length}`;
+    }
+
+    sql += ' ORDER BY name';
+
+    const result = await pool.query(sql, params);
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/slots', async (req, res, next) => {
   const { data, error } = validate(slotQuerySchema, req.query);
   if (error) {
@@ -47,7 +152,14 @@ router.get('/slots', async (req, res, next) => {
 
   try {
     const params = [data.date];
-    let sql = 'SELECT id, barber_id, date, time FROM slots WHERE status = $1 AND date = $2';
+    let sql = `
+      SELECT s.id, s.barber_id, s.date, s.time
+      FROM slots s
+      JOIN barbers b ON b.id = s.barber_id
+      WHERE s.status = $1
+        AND s.date = $2
+        AND b.is_active = true
+    `;
     params.unshift('available');
 
     if (data.barberId) {
@@ -70,7 +182,7 @@ router.post('/auth/register', async (req, res, next) => {
     return res.status(400).json({ error: 'Invalid payload', details: error.fieldErrors });
   }
 
-  if (!process.env.JWT_SECRET) {
+  if (!getJwtConfig().signingSecret) {
     return res.status(500).json({ error: 'JWT_SECRET is not configured' });
   }
 
@@ -103,13 +215,13 @@ router.post('/auth/register', async (req, res, next) => {
   }
 });
 
-router.post('/auth/login', async (req, res, next) => {
+router.post('/auth/login', loginRateLimiter, async (req, res, next) => {
   const { data, error } = validate(userLoginSchema, req.body);
   if (error) {
     return res.status(400).json({ error: 'Invalid payload', details: error.fieldErrors });
   }
 
-  if (!process.env.JWT_SECRET) {
+  if (!getJwtConfig().signingSecret) {
     return res.status(500).json({ error: 'JWT_SECRET is not configured' });
   }
 
@@ -128,9 +240,8 @@ router.post('/auth/login', async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign(
+    const token = signAccessToken(
       { sub: user.id, role: 'user' },
-      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 

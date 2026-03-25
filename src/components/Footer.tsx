@@ -10,22 +10,39 @@ const Footer = () => {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className="text-lg font-semibold tracking-tighter">HairLine</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{tr("footer.desc")}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {tr("footer.desc")}
+            </p>
           </div>
           <div>
             <h4 className="text-sm font-semibold">{tr("footer.nav")}</h4>
             <div className="mt-3 flex flex-col gap-2">
-              <Link to="/masters" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{tr("nav.masters")}</Link>
-              <Link to="/shop" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{tr("nav.shop")}</Link>
-              <Link to="/profile" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Профиль</Link>
+              <Link
+                to="/masters"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {tr("nav.masters")}
+              </Link>
+              <Link
+                to="/shop"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {tr("nav.shop")}
+              </Link>
+              <Link
+                to="/profile"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {tr("nav.profile")}
+              </Link>
             </div>
           </div>
           <div>
             <h4 className="text-sm font-semibold">{tr("footer.locations")}</h4>
             <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
-              <span>Чүй пр., 150</span>
-              <span>Жибек Жолу, 42</span>
-              <span>Ахунбаев көч., 98</span>
+              <span>{tr("salon.center.address")}</span>
+              <span>{tr("salon.north.address")}</span>
+              <span>{tr("salon.south.address")}</span>
             </div>
           </div>
           <div>
@@ -37,7 +54,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-10 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-          © 2026 HairLine. {tr("footer.rights")}
+          {tr("common.copyright")} 2026 HairLine. {tr("footer.rights")}
         </div>
       </div>
     </footer>

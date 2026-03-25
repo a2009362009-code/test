@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { products } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import { useI18n } from "@/lib/i18n";
+import { useProducts } from "@/hooks/useProducts";
 
 type Gender = "all" | "men" | "women";
 
 const Shop = () => {
   const [gender, setGender] = useState<Gender>("all");
   const { tr } = useI18n();
+  const { products } = useProducts();
 
   const genderOptions: [Gender, string][] = [
     ["all", tr("shop.all")],

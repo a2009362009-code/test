@@ -3,7 +3,7 @@ import type { Product } from "@/data/products";
 import { useI18n } from "@/lib/i18n";
 
 const ProductCard = ({ product }: { product: Product }) => {
-  const { tr, price } = useI18n();
+  const { tr, tv, price } = useI18n();
 
   return (
     <motion.div
@@ -20,7 +20,7 @@ const ProductCard = ({ product }: { product: Product }) => {
         />
       </div>
       <div className="p-4">
-        <p className="text-xs text-muted-foreground">{product.type}</p>
+        <p className="text-xs text-muted-foreground">{tv("productType", product.type)}</p>
         <h3 className="mt-1 text-sm font-semibold tracking-tight">{product.name}</h3>
         <div className="mt-3 flex items-center justify-between">
           <span className="tabular text-sm font-semibold">{price(product.price)}</span>

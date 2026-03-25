@@ -4,12 +4,14 @@ import { Menu, X, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useAuth } from "@/lib/auth";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { tr } = useI18n();
+  const { isAuthenticated, logout } = useAuth();
 
   const navLinks = [
     { to: "/", label: tr("nav.home") },
@@ -54,13 +56,31 @@ const Navbar = () => {
 
         <div className="hidden items-center gap-3 md:flex">
           <LanguageSwitcher />
-          <Link
-            to="/auth"
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
-          >
-            <User className="h-4 w-4" />
-            {tr("nav.login")}
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
+              >
+                <User className="h-4 w-4" />
+                {tr("nav.profile")}
+              </Link>
+              <button
+                onClick={logout}
+                className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+              >
+                {tr("nav.logout")}
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/auth"
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
+            >
+              <User className="h-4 w-4" />
+              {tr("nav.login")}
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
@@ -96,13 +116,31 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                to="/auth"
-                className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
-              >
-                <User className="h-4 w-4" />
-                {tr("nav.login")}
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/profile"
+                    className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
+                  >
+                    <User className="h-4 w-4" />
+                    {tr("nav.profile")}
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="mt-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground"
+                  >
+                    {tr("nav.logout")}
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
+                >
+                  <User className="h-4 w-4" />
+                  {tr("nav.login")}
+                </Link>
+              )}
             </div>
           </motion.div>
         )}

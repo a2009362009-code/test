@@ -1,85 +1,113 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { masters } from "@/data/masters";
 import MasterCard from "@/components/MasterCard";
 import { useI18n } from "@/lib/i18n";
+import { useMasters } from "@/hooks/useMasters";
+
+function normalizeRole(value: string) {
+  const source = value.trim().toLowerCase();
+  if (source === "barber" || source === "барбер") return "barber";
+  if (source === "stylist" || source === "стилист") return "stylist";
+  if (source === "colorist" || source === "колорист") return "colorist";
+  return source;
+}
+
+function normalizeLocation(value: string) {
+  const source = value.trim().toLowerCase();
+  if (source === "center" || source === "центр" || source === "борбор") return "center";
+  if (source === "north" || source === "север" || source === "түндүк") return "north";
+  if (source === "south" || source === "юг" || source === "түштүк") return "south";
+  return source;
+}
 
 const Masters = () => {
   const { tr } = useI18n();
+  const { masters } = useMasters();
 
   const filters = [
-    { key: "all", label: tr("filter.all"), value: "Все" },
-    { key: "barber", label: tr("filter.barber"), value: "Барбер" },
-    { key: "stylist", label: tr("filter.stylist"), value: "Стилист" },
-    { key: "colorist", label: tr("filter.colorist"), value: "Колорист" },
+    { key: "all", label: tr("filter.all"), value: "all" },
+    { key: "barber", label: tr("filter.barber"), value: "barber" },
+    { key: "stylist", label: tr("filter.stylist"), value: "stylist" },
+    { key: "colorist", label: tr("filter.colorist"), value: "colorist" },
   ];
+
   const locations = [
-    { key: "all", label: tr("filter.all"), value: "Все" },
-    { key: "center", label: tr("filter.center"), value: "Центр" },
-    { key: "north", label: tr("filter.north"), value: "Север" },
-    { key: "south", label: tr("filter.south"), value: "Юг" },
+    { key: "all", label: tr("filter.all"), value: "all" },
+    { key: "center", label: tr("filter.center"), value: "center" },
+    { key: "north", label: tr("filter.north"), value: "north" },
+    { key: "south", label: tr("filter.south"), value: "south" },
   ];
 
-  const [activeFilter, setActiveFilter] = useState("Все");
-  const [activeLocation, setActiveLocation] = useState("Все");
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeLocation, setActiveLocation] = useState("all");
 
-  const filtered = masters.filter((m) => {
-    const roleMatch = activeFilter === "Все" || m.role === activeFilter;
-    const locMatch = activeLocation === "Все" || m.location === activeLocation;
-    return roleMatch && locMatch;
+  const filtered = masters.filter((master) => {
+    const roleMatch =
+      activeFilter === "all" || normalizeRole(master.role) === activeFilter;
+    const locationMatch =
+      activeLocation === "all" || normalizeLocation(master.location) === activeLocation;
+    return roleMatch && locationMatch;
   });
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <h1 className="text-3xl font-semibold">{tr("masters.page.title")}</h1>
         <p className="mt-2 text-muted-foreground">{tr("masters.page.subtitle")}</p>
       </motion.div>
 
       <div className="mt-8 flex flex-wrap gap-6">
         <div className="flex flex-wrap gap-2">
-          <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">{tr("masters.specialty")}</span>
-          {filters.map((f) => (
+          <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">
+            {tr("masters.specialty")}
+          </span>
+          {filters.map((filter) => (
             <button
-              key={f.key}
-              onClick={() => setActiveFilter(f.value)}
+              key={filter.key}
+              onClick={() => setActiveFilter(filter.value)}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
-                activeFilter === f.value
+                activeFilter === filter.value
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
               }`}
             >
-              {f.label}
+              {filter.label}
             </button>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">{tr("masters.location")}</span>
-          {locations.map((l) => (
+          <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">
+            {tr("masters.location")}
+          </span>
+          {locations.map((location) => (
             <button
-              key={l.key}
-              onClick={() => setActiveLocation(l.value)}
+              key={location.key}
+              onClick={() => setActiveLocation(location.value)}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
-                activeLocation === l.value
+                activeLocation === location.value
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
               }`}
             >
-              {l.label}
+              {location.label}
             </button>
           ))}
         </div>
       </div>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {filtered.map((m, i) => (
+        {filtered.map((master, index) => (
           <motion.div
-            key={m.id}
+            key={master.id}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05, duration: 0.3 }}
+            transition={{ delay: index * 0.05, duration: 0.3 }}
           >
-            <MasterCard master={m} />
+            <MasterCard master={master} />
           </motion.div>
         ))}
       </div>

@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  frontend:
+    name: Frontend (lint/test/build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Generate OpenAPI types
+        run: npm run api:types
+
+      - name: Verify OpenAPI client is up to date
+        run: git diff --exit-code src/api/generated/openapi.ts
+
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Test frontend
+        run: npm run test
+
+      - name: Build frontend
+        run: npm run build
+
+  backend:
+    name: Backend (migrate/seed/smoke/integration)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: barbershop_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d barbershop_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/barbershop_test
+      PGSSL: "false"
+      JWT_SECRET: ci-jwt-secret
+      ADMIN_USER: admin_user
+      ADMIN_PASSWORD: admin_password
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: barbershop-booking-api/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci --prefix barbershop-booking-api
+
+      - name: Run migrations
+        run: npm run migrate:up --prefix barbershop-booking-api
+
+      - name: Seed database
+        run: npm run seed:refresh --prefix barbershop-booking-api
+
+      - name: Smoke tests
+        run: npm run test:smoke --prefix barbershop-booking-api
+
+      - name: Integration tests
+        run: npm run test:integration --prefix barbershop-booking-api
