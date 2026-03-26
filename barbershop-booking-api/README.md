@@ -1,95 +1,124 @@
 # Barbershop Booking API
 
-Node.js + Express + PostgreSQL backend for booking, catalog, and admin operations.
+Express + PostgreSQL backend for:
 
-## Quick start
+1. Public catalog (`barbers`, `services`, `products`)
+2. User auth and booking
+3. Admin auth and booking/slot management
 
-1. Install dependencies:
-```bash
+## Local Start
+
+```powershell
 npm install
+Copy-Item .env.example .env
 ```
-2. Copy env and edit values:
-```bash
-cp .env.example .env
+
+Recommended `.env` for local development:
+
+```env
+PORT=4000
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:8080
+
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/barbershop
+PGSSL=false
+
+ADMIN_USER=admin_user
+ADMIN_PASSWORD=admin_password
+# ADMIN_PASSWORD_HASH=
+
+JWT_SECRET=12345678901234567890
+JWT_TTL=12h
+
+AUTH_LOGIN_RATE_LIMIT_WINDOW_MS=900000
+AUTH_LOGIN_RATE_LIMIT_MAX=10
+ADMIN_LOGIN_RATE_LIMIT_WINDOW_MS=900000
+ADMIN_LOGIN_RATE_LIMIT_MAX=5
+
+LOG_LEVEL=info
 ```
-3. Run migrations and seed data:
-```bash
+
+Then run:
+
+```powershell
 npm run migrate:up
 npm run seed:refresh
-```
-4. Start API:
-```bash
 npm run dev
 ```
 
-Default URL: `http://localhost:4000`
+API URL: `http://localhost:4000`
+Swagger: `http://localhost:4000/api/docs`
 
-## Database management
+## Database
 
-Migrations are the source of truth for schema evolution.
+Migrations are the source of truth.
 
-- Apply migrations: `npm run migrate:up`
-- Rollback one migration: `npm run migrate:down`
-- Create migration: `npm run migrate:create -- <name>`
+1. Apply migrations: `npm run migrate:up`
+2. Rollback one migration: `npm run migrate:down`
+3. Create migration file: `npm run migrate:create -- <name>`
+4. Refresh demo data: `npm run seed:refresh`
 
-`db/schema.sql` remains as a snapshot/bootstrap SQL and is used by the initial migration.
+Notes:
 
-## Health endpoints
+1. `db/schema.sql` is a schema snapshot/bootstrap reference.
+2. `bookings.slot_id` is unique at DB level (one slot cannot be booked twice).
 
-- `GET /api/health` - liveness (process is alive)
-- `GET /api/ready` - readiness (checks DB with `SELECT 1`)
+## Health and Readiness
 
-## Security defaults
+1. `GET /api/health` - liveness
+2. `GET /api/ready` - readiness (`SELECT 1` to DB)
 
-- Rate limiting:
-  - `POST /api/auth/login`
-  - `POST /api/admin/login`
-- In production (`NODE_ENV=production`) only `ADMIN_PASSWORD_HASH` is accepted.
-- JWT rotation supported via `JWT_SECRETS` / `JWT_SECRET_CURRENT` + `JWT_SECRET_PREVIOUS`.
+Use `/api/ready` for deploy checks.
 
-## Logging / observability
+## Security
 
-- Structured JSON logs for every request.
-- Request correlation with `x-request-id` (generated if absent).
+1. Login rate limiting is enabled on:
+   `POST /api/auth/login`, `POST /api/admin/login`
+2. In production, `ADMIN_PASSWORD_HASH` is required.
+3. JWT rotation is supported via:
+   `JWT_SECRETS` or `JWT_SECRET_CURRENT` + `JWT_SECRET_PREVIOUS`
+
+## Logging
+
+Structured JSON logs with request metadata and request id.
 
 ## Tests
 
-```bash
+```powershell
 npm run test:smoke
 npm run test:integration
+npm test
 ```
 
-## API docs
-
-Swagger UI: `http://localhost:4000/api/docs`
-OpenAPI source: `src/docs/openapi.json`
-
-## Main endpoints
+## Endpoints
 
 Public:
-- `GET /api/health`
-- `GET /api/ready`
-- `GET /api/barbers`
-- `GET /api/barbers/:id/reviews`
-- `GET /api/services`
-- `GET /api/products`
-- `GET /api/slots`
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/bookings` (Bearer user token)
+
+1. `GET /api/health`
+2. `GET /api/ready`
+3. `GET /api/barbers`
+4. `GET /api/barbers/:id/reviews`
+5. `GET /api/services`
+6. `GET /api/products`
+7. `GET /api/slots`
+8. `POST /api/auth/register`
+9. `POST /api/auth/login`
+10. `POST /api/bookings` (user bearer token)
 
 Admin:
-- `POST /api/admin/login`
-- `GET /api/admin/bookings`
-- `DELETE /api/admin/bookings/:id`
-- `GET /api/admin/slots`
-- `POST /api/admin/slots`
-- `DELETE /api/admin/slots/:id`
-- `GET /api/admin/users`
 
-## Demo data after `npm run seed:refresh`
+1. `POST /api/admin/login`
+2. `GET /api/admin/bookings`
+3. `DELETE /api/admin/bookings/:id`
+4. `GET /api/admin/slots`
+5. `POST /api/admin/slots`
+6. `DELETE /api/admin/slots/:id`
+7. `GET /api/admin/users`
 
-- User 1: `ivan.petrov@example.com` / `password123`
-- User 2: `aida.user@example.com` / `password123`
-- User 3: `test.client@example.com` / `qwerty123`
-- Slots: generated for all active barbers for the next 14 days
+## Demo Data from Seed
+
+After `npm run seed:refresh`:
+
+1. Demo users are inserted
+2. Barbers/services/products/reviews are inserted
+3. Available slots are generated for active barbers for the next 14 days

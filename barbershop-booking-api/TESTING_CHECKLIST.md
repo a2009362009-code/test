@@ -1,37 +1,56 @@
-**Manual Test Checklist**
+# Manual Testing Checklist
 
-**Base URL**
-`https://barbershop-booking-api.onrender.com`
+## Environment
 
-**Preconditions**
-1. The service is deployed and `/api/health` returns `200`.
-2. Database has at least 1 barber and 1 service.
-3. Admin credentials are available from Render env vars.
+1. Base URL is set (`http://localhost:4000` or Render URL)
+2. `/api/health` returns `200`
+3. `/api/ready` returns `200`
+4. DB has seed data (barbers/services/slots)
 
-**Data Formats**
-1. Date: `YYYY-MM-DD`
-2. Time: `HH:MM` (24h)
-3. Phone: 7–20 chars, digits and `+() -` allowed
+## Public API
 
-**Checklist**
-1. Open `/api/health` and confirm `200`.
-2. Open `/api/barbers` and confirm list is not empty.
-3. Open `/api/services` and confirm list is not empty.
-4. Register a new user at `/api/auth/register`.
-5. Login at `/api/auth/login` and copy `token` as `USER_TOKEN`.
-6. Admin login at `/api/admin/login` and copy `token` as `ADMIN_TOKEN`.
-7. Create slots via `/api/admin/slots` for a future date.
-8. Check `/api/slots` and confirm created times are visible.
-9. Create booking via `/api/bookings` with `USER_TOKEN`.
-10. Check `/api/slots` and confirm booked time is gone.
-11. List bookings via `/api/admin/bookings` with `ADMIN_TOKEN`.
-12. Delete booking via `/api/admin/bookings/:id`.
-13. Check `/api/slots` and confirm time returns to available.
+1. `GET /api/barbers` returns non-empty list
+2. `GET /api/services` returns non-empty list
+3. `GET /api/products` returns non-empty list
+4. `GET /api/slots` with valid date returns available slots
+5. `GET /api/barbers/:id/reviews` returns list (can be empty)
 
-**Negative Checks**
-1. `POST /api/bookings` without token returns `401`.
-2. `GET /api/admin/bookings` with user token returns `403`.
-3. Invalid `date` or `time` returns `400`.
-4. Duplicate user register returns `409`.
-5. Booking an occupied slot returns `409`.
-6. Deleting nonexistent booking or slot returns `404`.
+## User Auth
+
+1. Register new user -> `201`
+2. Login with created user -> `200` + token
+3. Login with wrong password -> `401`
+4. Duplicate register (same email/phone) -> `409`
+
+## Booking Flow
+
+1. Create booking with user token -> `201`
+2. Rebook same slot -> `409`
+3. Slot disappears from public available slots after booking
+4. Booking request without token -> `401`
+
+## Admin Auth
+
+1. Admin login with correct creds -> `200` + token
+2. Admin login with wrong creds -> `401`
+3. Repeated wrong admin login eventually -> `429` (rate limit)
+
+## Admin Operations
+
+1. `GET /api/admin/bookings` with admin token -> `200`
+2. `GET /api/admin/users` with admin token -> `200`
+3. `POST /api/admin/slots` creates slots -> `201`
+4. `DELETE /api/admin/bookings/:id` -> `200` and slot returns to `available`
+5. `DELETE /api/admin/slots/:id` for free slot -> `200`
+6. `DELETE` non-existing booking/slot -> `404`
+
+## Authorization
+
+1. User token on admin endpoint -> `403`
+2. Missing auth header on admin endpoint -> `401`
+
+## Deployment Checks
+
+1. Frontend origin is allowed by CORS (`access-control-allow-origin` header exists)
+2. Swagger opens at `/api/docs`
+3. No 5xx errors in basic smoke run
