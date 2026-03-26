@@ -105,3 +105,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot_uidx ON bookings(slot_id);
 CREATE INDEX IF NOT EXISTS slots_date_idx ON slots(date);
 CREATE INDEX IF NOT EXISTS reviews_barber_idx ON reviews(barber_id);
 CREATE INDEX IF NOT EXISTS reviews_created_at_idx ON reviews(created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS reviews_barber_user_uidx ON reviews(barber_id, user_id) WHERE user_id IS NOT NULL;

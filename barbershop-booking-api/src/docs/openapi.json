@@ -616,6 +616,56 @@
             "format": "date-time"
           }
         }
+      },
+      "ReviewCreateRequest": {
+        "type": "object",
+        "required": [
+          "rating",
+          "comment"
+        ],
+        "properties": {
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 1000
+          }
+        }
+      },
+      "ReviewCreateResponse": {
+        "type": "object",
+        "required": [
+          "review",
+          "barber"
+        ],
+        "properties": {
+          "review": {
+            "$ref": "#/components/schemas/Review"
+          },
+          "barber": {
+            "type": "object",
+            "required": [
+              "id",
+              "rating",
+              "reviews_count"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "rating": {
+                "type": "number"
+              },
+              "reviews_count": {
+                "type": "integer"
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -1400,6 +1450,97 @@
           },
           "400": {
             "description": "Invalid barber id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create or update own review for barber",
+        "operationId": "upsertBarberReview",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Review created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewCreateResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Review updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewCreateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid barber id or payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User has no booking with this barber",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Barber not found",
             "content": {
               "application/json": {
                 "schema": {

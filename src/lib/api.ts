@@ -11,11 +11,14 @@ export type ApiProduct = components["schemas"]["Product"];
 export type ApiSlot = components["schemas"]["Slot"];
 export type ApiUser = components["schemas"]["UserPublic"];
 export type ApiBookingResponse = components["schemas"]["BookingCreatedResponse"];
+export type ApiReview = components["schemas"]["Review"];
 type RegisterResponse = components["schemas"]["RegisterResponse"];
 type LoginResponse = components["schemas"]["UserLoginResponse"];
 type RegisterRequest = components["schemas"]["RegisterRequest"];
 type LoginRequest = components["schemas"]["UserLoginRequest"];
 type BookingRequest = components["schemas"]["BookingRequest"];
+type ReviewCreateRequest = components["schemas"]["ReviewCreateRequest"];
+type ReviewCreateResponse = components["schemas"]["ReviewCreateResponse"];
 
 interface MockUserRecord {
   id: number;
@@ -35,8 +38,19 @@ interface MockBookingRecord {
   createdAt: string;
 }
 
+interface MockReviewRecord {
+  id: number;
+  barberId: number;
+  userId: number | null;
+  authorName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
 const MOCK_USERS_KEY = "hairline-mock-users";
 const MOCK_BOOKINGS_KEY = "hairline-mock-bookings";
+const MOCK_REVIEWS_KEY = "hairline-mock-reviews";
 const MOCK_SLOT_TIMES = [
   "10:00",
   "10:30",
@@ -115,6 +129,45 @@ function loadMockBookings(): MockBookingRecord[] {
 
 function saveMockBookings(bookings: MockBookingRecord[]) {
   localStorage.setItem(MOCK_BOOKINGS_KEY, JSON.stringify(bookings));
+}
+
+function loadMockReviews(): MockReviewRecord[] {
+  const raw = localStorage.getItem(MOCK_REVIEWS_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as MockReviewRecord[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveMockReviews(reviews: MockReviewRecord[]) {
+  localStorage.setItem(MOCK_REVIEWS_KEY, JSON.stringify(reviews));
+}
+
+function ensureMockReviewsSeeded() {
+  if (localStorage.getItem(MOCK_REVIEWS_KEY)) {
+    return;
+  }
+
+  const seeded = masters.flatMap((master) =>
+    master.clientReviews.map((review, index) => ({
+      id: Number.parseInt(review.id.replace(/[^\d]/g, ""), 10) || Number(`${master.id}${index + 1}`),
+      barberId: Number(master.id),
+      userId: null,
+      authorName: review.author,
+      rating: review.rating,
+      comment: review.text,
+      createdAt: new Date(review.date).toISOString(),
+    })),
+  );
+
+  saveMockReviews(seeded);
+}
+
+function roundToSingleDecimal(value: number) {
+  return Math.round(value * 10) / 10;
 }
 
 function toMockToken(userId: number) {
@@ -276,6 +329,98 @@ const mockApi = {
 
     return { id: nextId, createdAt };
   },
+  getBarberReviews: async (barberId: number): Promise<ApiReview[]> => {
+    await wait();
+    ensureMockReviewsSeeded();
+    return loadMockReviews()
+      .filter((review) => review.barberId === barberId)
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+      .map((review) => ({
+        id: review.id,
+        barber_id: review.barberId,
+        author_name: review.authorName,
+        rating: review.rating,
+        comment: review.comment,
+        created_at: review.createdAt,
+      }));
+  },
+  createBarberReview: async (
+    token: string,
+    barberId: number,
+    body: ReviewCreateRequest,
+  ): Promise<ReviewCreateResponse> => {
+    await wait();
+    const userId = fromMockToken(token);
+    if (!userId) {
+      throw new ApiError("Invalid token", 401);
+    }
+
+    const user = loadMockUsers().find((item) => item.id === userId);
+    if (!user) {
+      throw new ApiError("User not found", 401);
+    }
+
+    const hasBooking = loadMockBookings().some(
+      (booking) => booking.userId === userId && booking.barberId === barberId,
+    );
+    if (!hasBooking) {
+      throw new ApiError("Only clients with booking can leave a review", 403);
+    }
+
+    ensureMockReviewsSeeded();
+    const reviews = loadMockReviews();
+    const now = new Date().toISOString();
+    const existing = reviews.find(
+      (review) => review.barberId === barberId && review.userId === userId,
+    );
+
+    let saved: MockReviewRecord;
+    if (existing) {
+      existing.rating = body.rating;
+      existing.comment = body.comment.trim();
+      existing.createdAt = now;
+      existing.authorName = user.fullName;
+      saved = existing;
+    } else {
+      const nextId = reviews.reduce((max, review) => Math.max(max, review.id), 0) + 1;
+      saved = {
+        id: nextId,
+        barberId,
+        userId,
+        authorName: user.fullName,
+        rating: body.rating,
+        comment: body.comment.trim(),
+        createdAt: now,
+      };
+      reviews.push(saved);
+    }
+
+    saveMockReviews(reviews);
+
+    const barberReviews = reviews.filter((review) => review.barberId === barberId);
+    const rating =
+      barberReviews.length > 0
+        ? roundToSingleDecimal(
+            barberReviews.reduce((sum, review) => sum + review.rating, 0) / barberReviews.length,
+          )
+        : 0;
+
+    return {
+      review: {
+        id: saved.id,
+        barber_id: saved.barberId,
+        author_name: saved.authorName,
+        rating: saved.rating,
+        comment: saved.comment,
+        created_at: saved.createdAt,
+      },
+      barber: {
+        id: barberId,
+        rating,
+        reviews_count: barberReviews.length,
+      },
+    };
+  },
 };
 
 const realApi = {
@@ -345,6 +490,44 @@ const realApi = {
     try {
       return await unwrapOpenApiResponse(
         client.POST("/api/bookings", {
+          body,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+      );
+    } catch (error) {
+      return toApiError(error);
+    }
+  },
+  getBarberReviews: async (barberId: number): Promise<ApiReview[]> => {
+    try {
+      return await unwrapOpenApiResponse(
+        client.GET("/api/barbers/{id}/reviews", {
+          params: {
+            path: {
+              id: barberId,
+            },
+          },
+        }),
+      );
+    } catch (error) {
+      return toApiError(error);
+    }
+  },
+  createBarberReview: async (
+    token: string,
+    barberId: number,
+    body: ReviewCreateRequest,
+  ): Promise<ReviewCreateResponse> => {
+    try {
+      return await unwrapOpenApiResponse(
+        client.POST("/api/barbers/{id}/reviews", {
+          params: {
+            path: {
+              id: barberId,
+            },
+          },
           body,
           headers: {
             Authorization: `Bearer ${token}`,

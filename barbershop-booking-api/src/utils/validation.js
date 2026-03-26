@@ -36,6 +36,11 @@ const bookingSchema = z.object({
   time: timeStringSchema
 });
 
+const reviewCreateSchema = z.object({
+  rating: z.coerce.number().int().min(1).max(5),
+  comment: z.string().trim().min(5).max(1000)
+});
+
 const loginSchema = z.object({
   username: z.string().min(1),
   password: z.string().min(1)
@@ -99,5 +104,6 @@ module.exports = {
   bookingsQuerySchema,
   usersQuerySchema,
   productsQuerySchema,
+  reviewCreateSchema,
   validate
 };

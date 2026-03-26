@@ -79,6 +79,42 @@ const translations: Translations = {
     en: "Examples of the master's work",
   },
   "master.clientreviews": { kg: "Кардарлардын пикирлери", ru: "Отзывы клиентов", en: "Client reviews" },
+  "master.loading": { kg: "Жүктөлүүдө...", ru: "Загрузка...", en: "Loading..." },
+  "master.reviews.loading": { kg: "Пикирлер жүктөлүүдө...", ru: "Отзывы загружаются...", en: "Loading reviews..." },
+  "master.reviews.empty": { kg: "Азырынча пикир жок.", ru: "Пока нет отзывов.", en: "No reviews yet." },
+  "master.review.form.title": { kg: "Пикир калтырыңыз", ru: "Оставить отзыв", en: "Leave a review" },
+  "master.review.form.desc": {
+    kg: "Кызматты 1ден 5ке чейин баалап, комментарий жазыңыз.",
+    ru: "Оцените услугу от 1 до 5 и добавьте комментарий.",
+    en: "Rate service from 1 to 5 and add your comment.",
+  },
+  "master.review.form.placeholder": {
+    kg: "Пикириңизди жазыңыз",
+    ru: "Напишите ваш отзыв",
+    en: "Write your review",
+  },
+  "master.review.form.submit": { kg: "Пикир жөнөтүү", ru: "Отправить отзыв", en: "Submit review" },
+  "master.review.signin.required": {
+    kg: "Пикир калтыруу үчүн кириңиз.",
+    ru: "Войдите, чтобы оставить отзыв.",
+    en: "Sign in to leave a review.",
+  },
+  "master.review.success.title": { kg: "Пикир сакталды", ru: "Отзыв сохранен", en: "Review saved" },
+  "master.review.success.desc": {
+    kg: "Пикириңиз үчүн рахмат.",
+    ru: "Спасибо за отзыв.",
+    en: "Thanks for your feedback.",
+  },
+  "master.review.error.title": {
+    kg: "Пикирди сактоо мүмкүн болгон жок",
+    ru: "Не удалось сохранить отзыв",
+    en: "Failed to save review",
+  },
+  "master.review.error.desc": {
+    kg: "Пикирди сактоо мүмкүн болгон жок. Кайра аракет кылыңыз.",
+    ru: "Не удалось сохранить отзыв. Попробуйте снова.",
+    en: "Could not save your review. Please try again.",
+  },
 
   "products.title": { kg: "Продукттар", ru: "Продукты", en: "Products" },
   "products.subtitle": {

@@ -1,5 +1,5 @@
 import type { Master } from "@/data/masters";
-import type { ApiBarber } from "@/lib/api";
+import type { ApiBarber, ApiReview } from "@/lib/api";
 import master1 from "@/assets/master-1.jpg";
 import master2 from "@/assets/master-2.jpg";
 import master3 from "@/assets/master-3.jpg";
@@ -48,4 +48,14 @@ export function mapBarbersToMasters(barbers: ApiBarber[]): Master[] {
       clientReviews: [],
     };
   });
+}
+
+export function mapApiReviewsToMasterReviews(reviews: ApiReview[]): Master["clientReviews"] {
+  return reviews.map((review) => ({
+    id: String(review.id),
+    author: review.author_name,
+    rating: Math.max(1, Math.min(5, Math.round(Number(review.rating)))),
+    text: review.comment,
+    date: review.created_at,
+  }));
 }

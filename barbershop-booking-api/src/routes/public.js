@@ -10,6 +10,7 @@ const {
   productsQuerySchema,
   registerSchema,
   userLoginSchema,
+  reviewCreateSchema,
   validate
 } = require('../utils/validation');
 
@@ -89,6 +90,152 @@ router.get('/barbers/:id/reviews', async (req, res, next) => {
     res.json(result.rows);
   } catch (err) {
     next(err);
+  }
+});
+
+router.post('/barbers/:id/reviews', requireAuth, requireRole('user'), async (req, res, next) => {
+  const barberId = Number(req.params.id);
+  if (!Number.isInteger(barberId) || barberId <= 0) {
+    return res.status(400).json({ error: 'Invalid barber id' });
+  }
+
+  const userId = Number(req.user.sub);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(401).json({ error: 'Invalid token subject' });
+  }
+
+  const { data, error } = validate(reviewCreateSchema, req.body);
+  if (error) {
+    return res.status(400).json({ error: 'Invalid payload', details: error.fieldErrors });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const userRes = await client.query(
+      'SELECT id, full_name FROM users WHERE id = $1',
+      [userId]
+    );
+    if (!userRes.rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    const barberRes = await client.query(
+      'SELECT id FROM barbers WHERE id = $1 AND is_active = true',
+      [barberId]
+    );
+    if (!barberRes.rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Barber not found' });
+    }
+
+    const bookingRes = await client.query(
+      'SELECT 1 FROM bookings WHERE user_id = $1 AND barber_id = $2 LIMIT 1',
+      [userId, barberId]
+    );
+    if (!bookingRes.rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'Only clients with booking can leave a review' });
+    }
+
+    const createdAt = new Date().toISOString();
+    const existingReviewRes = await client.query(
+      `
+      SELECT id
+      FROM reviews
+      WHERE barber_id = $1 AND user_id = $2
+      LIMIT 1
+      FOR UPDATE
+      `,
+      [barberId, userId]
+    );
+
+    let inserted = false;
+    let reviewRes;
+    if (existingReviewRes.rowCount) {
+      reviewRes = await client.query(
+        `
+        UPDATE reviews
+        SET
+          author_name = $3,
+          rating = $4,
+          comment = $5,
+          created_at = $6::timestamptz
+        WHERE id = $1 AND user_id = $2
+        RETURNING id, barber_id, author_name, rating, comment, created_at
+        `,
+        [
+          existingReviewRes.rows[0].id,
+          userId,
+          userRes.rows[0].full_name,
+          data.rating,
+          data.comment,
+          createdAt
+        ]
+      );
+    } else {
+      inserted = true;
+      reviewRes = await client.query(
+        `
+        INSERT INTO reviews (barber_id, user_id, author_name, rating, comment, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6::timestamptz)
+        RETURNING id, barber_id, author_name, rating, comment, created_at
+        `,
+        [
+          barberId,
+          userId,
+          userRes.rows[0].full_name,
+          data.rating,
+          data.comment,
+          createdAt
+        ]
+      );
+    }
+
+    const statsRes = await client.query(
+      `
+      UPDATE barbers AS b
+      SET
+        rating = stats.avg_rating,
+        reviews_count = stats.total_count
+      FROM (
+        SELECT barber_id, ROUND(AVG(rating)::numeric, 1) AS avg_rating, COUNT(*)::int AS total_count
+        FROM reviews
+        WHERE barber_id = $1
+        GROUP BY barber_id
+      ) AS stats
+      WHERE b.id = stats.barber_id
+      RETURNING b.id, b.rating, b.reviews_count
+      `,
+      [barberId]
+    );
+
+    await client.query('COMMIT');
+
+    const review = reviewRes.rows[0];
+    const barber = statsRes.rows[0];
+    res.status(inserted ? 201 : 200).json({
+      review: {
+        id: review.id,
+        barber_id: review.barber_id,
+        author_name: review.author_name,
+        rating: Number(review.rating),
+        comment: review.comment,
+        created_at: review.created_at
+      },
+      barber: {
+        id: barber.id,
+        rating: Number(barber.rating),
+        reviews_count: Number(barber.reviews_count)
+      }
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
   }
 });
 

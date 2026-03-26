@@ -115,10 +115,54 @@ test('register, login and create booking flow', async () => {
   assert.equal(secondBookingResponse.statusCode, 409);
 });
 
+test('user can create and update own barber review', async () => {
+  const createReviewResponse = await request(app)
+    .post(`/api/barbers/${barberId}/reviews`)
+    .set('Authorization', `Bearer ${userToken}`)
+    .send({
+      rating: 5,
+      comment: 'Excellent service and clean finish.'
+    });
+
+  assert.equal(createReviewResponse.statusCode, 201);
+  assert.equal(createReviewResponse.body.review.barber_id, barberId);
+  assert.equal(Number(createReviewResponse.body.review.rating), 5);
+
+  const updateReviewResponse = await request(app)
+    .post(`/api/barbers/${barberId}/reviews`)
+    .set('Authorization', `Bearer ${userToken}`)
+    .send({
+      rating: 4,
+      comment: 'Updated review: still great, but minor wait.'
+    });
+
+  assert.equal(updateReviewResponse.statusCode, 200);
+  assert.equal(Number(updateReviewResponse.body.review.rating), 4);
+  assert.equal(updateReviewResponse.body.barber.id, barberId);
+
+  const barbersResponse = await request(app).get('/api/barbers');
+  assert.equal(barbersResponse.statusCode, 200);
+
+  const targetBarber = barbersResponse.body.find((barber) => barber.id === barberId);
+  assert.ok(targetBarber);
+  assert.equal(Number(targetBarber.rating), Number(updateReviewResponse.body.barber.rating));
+  assert.equal(
+    Number(targetBarber.reviews_count),
+    Number(updateReviewResponse.body.barber.reviews_count)
+  );
+});
+
 test.after(async () => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    const userResult = await client.query('SELECT id FROM users WHERE email = $1', [email]);
+    const userId = userResult.rowCount ? userResult.rows[0].id : null;
+
+    if (userId) {
+      await client.query('DELETE FROM reviews WHERE user_id = $1', [userId]);
+    }
+
     await client.query('DELETE FROM bookings WHERE date = $1 AND barber_id = $2 AND time = $3', [
       slotDate,
       barberId,

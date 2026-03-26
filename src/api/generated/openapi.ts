@@ -270,7 +270,8 @@ export interface paths {
         /** List barber reviews */
         get: operations["getBarberReviews"];
         put?: never;
-        post?: never;
+        /** Create or update own review for barber */
+        post: operations["upsertBarberReview"];
         delete?: never;
         options?: never;
         head?: never;
@@ -444,6 +445,18 @@ export interface components {
             comment: string;
             /** Format: date-time */
             created_at: string;
+        };
+        ReviewCreateRequest: {
+            rating: number;
+            comment: string;
+        };
+        ReviewCreateResponse: {
+            review: components["schemas"]["Review"];
+            barber: {
+                id: number;
+                rating: number;
+                reviews_count: number;
+            };
         };
     };
     responses: never;
@@ -1031,6 +1044,77 @@ export interface operations {
             };
             /** @description Invalid barber id */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    upsertBarberReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Review updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewCreateResponse"];
+                };
+            };
+            /** @description Review created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewCreateResponse"];
+                };
+            };
+            /** @description Invalid barber id or payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing or invalid token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description User has no booking with this barber */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Barber not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
