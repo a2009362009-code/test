@@ -394,7 +394,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://barbershop-booking-api.onrender.com"
+      "value": "https://test-4p5l.onrender.com"
     },
     {
       "key": "adminUser",

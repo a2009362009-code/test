@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://barbershop-booking-api.onrender.com"
+      "url": "https://test-4p5l.onrender.com"
     },
     {
       "url": "http://localhost:4000"

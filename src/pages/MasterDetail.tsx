@@ -133,7 +133,7 @@ const MasterDetail = () => {
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-3xl font-semibold">{master.name}</h1>
             {master.available && (
-              <span className="inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent ring-1 ring-inset ring-accent/20">
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
                 {tr("master.available")}
               </span>
             )}

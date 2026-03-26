@@ -4,6 +4,12 @@ import master1 from "@/assets/master-1.jpg";
 import master2 from "@/assets/master-2.jpg";
 import master3 from "@/assets/master-3.jpg";
 import master4 from "@/assets/master-4.jpg";
+import portfolio1 from "@/assets/portfolio-1.jpg";
+import portfolio2 from "@/assets/portfolio-2.jpg";
+import portfolio3 from "@/assets/portfolio-3.jpg";
+import portfolio4 from "@/assets/portfolio-4.jpg";
+import portfolio5 from "@/assets/portfolio-5.jpg";
+import portfolio6 from "@/assets/portfolio-6.jpg";
 
 const imageMap: Record<string, string> = {
   "/assets/master-1.jpg": master1,
@@ -12,10 +18,33 @@ const imageMap: Record<string, string> = {
   "/assets/master-4.jpg": master4,
 };
 
+const fallbackMasterImages = [master1, master2, master3, master4];
+
+const portfolioPresets: string[][] = [
+  [portfolio1, portfolio2, portfolio3],
+  [portfolio2, portfolio4, portfolio5, portfolio6],
+  [portfolio3, portfolio1, portfolio5, portfolio2, portfolio6],
+  [portfolio4, portfolio5, portfolio6],
+];
+
 function resolveImage(imageUrl: string | undefined, index: number) {
-  const fallback = [master1, master2, master3, master4][index % 4];
+  const fallback = fallbackMasterImages[index % fallbackMasterImages.length];
   if (!imageUrl) return fallback;
-  return imageMap[imageUrl] || imageUrl;
+
+  if (imageMap[imageUrl]) {
+    return imageMap[imageUrl];
+  }
+
+  const normalizedUrl = imageUrl.toLowerCase();
+  if (normalizedUrl.includes("placehold.co") || normalizedUrl.includes("placeholder")) {
+    return fallback;
+  }
+
+  return imageUrl;
+}
+
+function resolvePortfolio(index: number) {
+  return portfolioPresets[index % portfolioPresets.length];
 }
 
 export function mapBarbersToMasters(barbers: ApiBarber[]): Master[] {
@@ -44,7 +73,7 @@ export function mapBarbersToMasters(barbers: ApiBarber[]): Master[] {
       location,
       bio,
       image,
-      portfolio: [],
+      portfolio: resolvePortfolio(index),
       clientReviews: [],
     };
   });

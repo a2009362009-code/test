@@ -38,7 +38,7 @@ const MasterCard = ({ master }: { master: Master }) => {
               </p>
             </div>
             {master.available && (
-              <span className="inline-flex shrink-0 items-center rounded-full bg-accent/10 px-2 py-1 text-xs font-medium text-accent ring-1 ring-inset ring-accent/20">
+              <span className="inline-flex shrink-0 items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
                 {tr("master.available")}
               </span>
             )}
