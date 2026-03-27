@@ -7,7 +7,7 @@ const Footer = () => {
   return (
     <footer className="border-t border-border bg-secondary/50">
       <div className="mx-auto max-w-7xl px-6 py-12">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <h3 className="text-lg font-semibold tracking-tighter">HairLine</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -35,14 +35,6 @@ const Footer = () => {
               >
                 {tr("nav.profile")}
               </Link>
-            </div>
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold">{tr("footer.locations")}</h4>
-            <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
-              <span>{tr("salon.center.address")}</span>
-              <span>{tr("salon.north.address")}</span>
-              <span>{tr("salon.south.address")}</span>
             </div>
           </div>
           <div>

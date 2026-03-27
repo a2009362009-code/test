@@ -1,9 +1,11 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-barber.jpg";
 import MasterCard from "@/components/MasterCard";
 import ProductCard from "@/components/ProductCard";
+import SalonsMap from "@/components/SalonsMap";
 import { useI18n } from "@/lib/i18n";
 import { useMasters } from "@/hooks/useMasters";
 import { useProducts } from "@/hooks/useProducts";
@@ -18,9 +20,40 @@ const fadeUp = {
 };
 
 const Index = () => {
-  const { tr } = useI18n();
+  const { tr, lang } = useI18n();
   const { masters } = useMasters();
   const { products } = useProducts();
+  const salons = useMemo(
+    () => [
+      {
+        id: "center",
+        name: tr("salon.center.name"),
+        address: tr("salon.center.address"),
+        hours: "9:00 - 21:00",
+        latitude: 42.876,
+        longitude: 74.604,
+      },
+      {
+        id: "north",
+        name: tr("salon.north.name"),
+        address: tr("salon.north.address"),
+        hours: "10:00 - 20:00",
+        latitude: 42.879,
+        longitude: 74.618,
+      },
+      {
+        id: "south",
+        name: tr("salon.south.name"),
+        address: tr("salon.south.address"),
+        hours: "9:00 - 21:00",
+        latitude: 42.835,
+        longitude: 74.607,
+      },
+    ],
+    [tr],
+  );
+
+  const salonsTitle = lang === "ru" ? "Салоны" : lang === "kg" ? "Салондор" : "Salons";
 
   return (
     <div>
@@ -142,30 +175,10 @@ const Index = () => {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-20">
-        <h2 className="text-2xl font-semibold">{tr("salons.title")}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{tr("salons.subtitle")}</p>
-        <div className="mt-8 grid gap-6 sm:grid-cols-3">
-          {[
-            {
-              key: "center",
-              name: tr("salon.center.name"),
-              address: tr("salon.center.address"),
-              hours: "9:00 - 21:00",
-            },
-            {
-              key: "north",
-              name: tr("salon.north.name"),
-              address: tr("salon.north.address"),
-              hours: "10:00 - 20:00",
-            },
-            {
-              key: "south",
-              name: tr("salon.south.name"),
-              address: tr("salon.south.address"),
-              hours: "9:00 - 21:00",
-            },
-          ].map((location) => (
-            <div key={location.key} className="rounded-2xl bg-card p-6 card-shadow">
+        <h2 className="text-2xl font-semibold">{salonsTitle}</h2>
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {salons.map((location) => (
+            <div key={location.id} className="rounded-2xl bg-card p-6 card-shadow">
               <h3 className="font-semibold">{location.name}</h3>
               <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5" /> {location.address}
@@ -175,6 +188,9 @@ const Index = () => {
               </p>
             </div>
           ))}
+        </div>
+        <div className="mt-8">
+          <SalonsMap locations={salons} />
         </div>
       </section>
     </div>
