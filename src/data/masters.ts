@@ -27,7 +27,11 @@ export interface Master {
   image: string;
   available: boolean;
   specialties: string[];
-  location: string;
+  salonId: string;
+  salonCode: string;
+  salonName: string;
+  salonAddress: string;
+  location?: string;
   bio: string;
   portfolio: string[];
   clientReviews: Review[];
@@ -44,7 +48,10 @@ export const masters: Master[] = [
     image: master1,
     available: true,
     specialties: ["Men haircut", "Shave", "Styling"],
-    location: "Center",
+    salonId: "1",
+    salonCode: "center",
+    salonName: "HairLine Center",
+    salonAddress: "Chuy Ave, 150",
     bio: "Senior barber focused on clean fades, shape, and natural styling.",
     portfolio: [portfolio1, portfolio3, portfolio6],
     clientReviews: [
@@ -63,7 +70,10 @@ export const masters: Master[] = [
     image: master2,
     available: true,
     specialties: ["Women haircut", "Styling", "Care"],
-    location: "Center",
+    salonId: "1",
+    salonCode: "center",
+    salonName: "HairLine Center",
+    salonAddress: "Chuy Ave, 150",
     bio: "Lead stylist for event looks and premium haircare routines.",
     portfolio: [portfolio2, portfolio4, portfolio5],
     clientReviews: [
@@ -82,7 +92,10 @@ export const masters: Master[] = [
     image: master3,
     available: false,
     specialties: ["Men haircut", "Beard design"],
-    location: "North",
+    salonId: "2",
+    salonCode: "north",
+    salonName: "HairLine North",
+    salonAddress: "Jibek Jolu, 42",
     bio: "Modern cuts specialist with strong attention to detail.",
     portfolio: [portfolio1, portfolio6, portfolio3],
     clientReviews: [
@@ -100,7 +113,10 @@ export const masters: Master[] = [
     image: master4,
     available: true,
     specialties: ["Coloring", "Highlights", "Balayage"],
-    location: "South",
+    salonId: "3",
+    salonCode: "south",
+    salonName: "HairLine South",
+    salonAddress: "Akhunbaev St, 98",
     bio: "Certified colorist focused on natural tones and healthy shine.",
     portfolio: [portfolio2, portfolio5, portfolio4],
     clientReviews: [
@@ -110,4 +126,3 @@ export const masters: Master[] = [
     ],
   },
 ];
-

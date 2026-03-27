@@ -57,7 +57,16 @@ export function mapBarbersToMasters(barbers: ApiBarber[]): Master[] {
     const specialties = barber.specialties || [];
     const available = barber.is_available ?? true;
     const role = barber.role || "Barber";
-    const location = barber.location || "";
+    const salon = barber.salon;
+    const salonId =
+      typeof barber.salon_id === "number"
+        ? String(barber.salon_id)
+        : typeof salon?.id === "number"
+          ? String(salon.id)
+          : "0";
+    const salonCode = salon?.code || "unassigned";
+    const salonName = salon?.name || "";
+    const salonAddress = salon?.address || "";
     const bio = barber.bio || "";
     const image = resolveImage(barber.image_url, index);
 
@@ -70,7 +79,11 @@ export function mapBarbersToMasters(barbers: ApiBarber[]): Master[] {
       reviews: Number(reviews),
       specialties,
       available,
-      location,
+      salonId,
+      salonCode,
+      salonName,
+      salonAddress,
+      location: salonAddress,
       bio,
       image,
       portfolio: resolvePortfolio(index),

@@ -36,6 +36,9 @@ const MasterCard = ({ master }: { master: Master }) => {
               <p className="text-sm text-muted-foreground">
                 {tv("role", master.role)} - {formatYears(master.experience)}
               </p>
+              <p className="text-xs text-muted-foreground">
+                {master.salonName || tr("masters.unassignedSalon")}
+              </p>
             </div>
             {master.available && (
               <span className="inline-flex shrink-0 items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">

@@ -147,7 +147,9 @@ const MasterDetail = () => {
               <Clock className="h-4 w-4" /> {formatYears(master.experience)}
             </span>
             <span className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" /> {tv("location", master.location)}
+              <MapPin className="h-4 w-4" />
+              {master.salonName || tr("masters.unassignedSalon")}
+              {master.salonAddress ? ` - ${master.salonAddress}` : ""}
             </span>
           </div>
 

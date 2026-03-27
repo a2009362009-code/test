@@ -438,12 +438,12 @@ export interface components {
             image_url?: string | null;
             is_available: boolean;
             specialties: string[];
-            location?: string | null;
+            salon_id: number;
+            salon: components["schemas"]["Salon"];
             bio?: string | null;
             is_active: boolean;
             /** Format: date-time */
             created_at: string;
-            salon_id?: number | null;
         };
         Service: {
             id: number;
@@ -555,6 +555,9 @@ export interface components {
             service_price: string;
             barber_id: number;
             barber_name: string;
+            salon_id: number;
+            salon_name: string;
+            salon_address: string;
             /** Format: date */
             date: string;
             /** @example 10:30:00 */
@@ -650,7 +653,10 @@ export interface operations {
     };
     getBarbers: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Filter barbers by salon id */
+                salonId?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;

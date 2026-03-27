@@ -237,6 +237,8 @@
           "reviews_count",
           "is_available",
           "specialties",
+          "salon_id",
+          "salon",
           "is_active",
           "created_at"
         ],
@@ -272,9 +274,11 @@
               "type": "string"
             }
           },
-          "location": {
-            "type": "string",
-            "nullable": true
+          "salon_id": {
+            "type": "integer"
+          },
+          "salon": {
+            "$ref": "#/components/schemas/Salon"
           },
           "bio": {
             "type": "string",
@@ -286,10 +290,6 @@
           "created_at": {
             "type": "string",
             "format": "date-time"
-          },
-          "salon_id": {
-            "type": "integer",
-            "nullable": true
           }
         }
       },
@@ -680,6 +680,9 @@
           "service_price",
           "barber_id",
           "barber_name",
+          "salon_id",
+          "salon_name",
+          "salon_address",
           "date",
           "time",
           "created_at"
@@ -702,6 +705,15 @@
             "type": "integer"
           },
           "barber_name": {
+            "type": "string"
+          },
+          "salon_id": {
+            "type": "integer"
+          },
+          "salon_name": {
+            "type": "string"
+          },
+          "salon_address": {
             "type": "string"
           },
           "date": {
@@ -865,6 +877,18 @@
       "get": {
         "summary": "List active barbers",
         "operationId": "getBarbers",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "salonId",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Filter barbers by salon id"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",

@@ -1,8 +1,9 @@
-﻿import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import MasterCard from "@/components/MasterCard";
 import { useI18n } from "@/lib/i18n";
 import { useMasters } from "@/hooks/useMasters";
+import { useSalons } from "@/hooks/useSalons";
 
 function normalizeRole(value: string) {
   const source = value.trim().toLowerCase();
@@ -12,29 +13,10 @@ function normalizeRole(value: string) {
   return source;
 }
 
-function normalizeLocation(value: string) {
-  const source = value.trim().toLowerCase();
-  if (source.includes("center") || source.includes("chuy") || source.includes("toktogul")) {
-    return "center";
-  }
-  if (source.includes("north") || source.includes("kiev") || source.includes("jibek")) {
-    return "north";
-  }
-  if (
-    source.includes("south") ||
-    source.includes("manasa") ||
-    source.includes("isanova") ||
-    source.includes("akhunbaev") ||
-    source.includes("abdrakhmanov")
-  ) {
-    return "south";
-  }
-  return source;
-}
-
 const Masters = () => {
   const { tr } = useI18n();
   const { masters, isLoading, isError, refetch } = useMasters();
+  const { salons } = useSalons();
 
   const filters = [
     { key: "all", label: tr("filter.all"), value: "all" },
@@ -43,22 +25,26 @@ const Masters = () => {
     { key: "colorist", label: tr("filter.colorist"), value: "colorist" },
   ];
 
-  const locations = [
-    { key: "all", label: tr("filter.all"), value: "all" },
-    { key: "center", label: tr("filter.center"), value: "center" },
-    { key: "north", label: tr("filter.north"), value: "north" },
-    { key: "south", label: tr("filter.south"), value: "south" },
-  ];
+  const salonFilters = useMemo(
+    () => [
+      { key: "all", label: tr("filter.all"), value: "all" },
+      ...salons.map((salon) => ({
+        key: salon.id,
+        label: salon.name,
+        value: salon.id,
+      })),
+    ],
+    [salons, tr],
+  );
 
   const [activeFilter, setActiveFilter] = useState("all");
-  const [activeLocation, setActiveLocation] = useState("all");
+  const [activeSalon, setActiveSalon] = useState("all");
 
   const filtered = masters.filter((master) => {
     const roleMatch =
       activeFilter === "all" || normalizeRole(master.role) === activeFilter;
-    const locationMatch =
-      activeLocation === "all" || normalizeLocation(master.location) === activeLocation;
-    return roleMatch && locationMatch;
+    const salonMatch = activeSalon === "all" || master.salonId === activeSalon;
+    return roleMatch && salonMatch;
   });
 
   return (
@@ -95,17 +81,17 @@ const Masters = () => {
           <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">
             {tr("masters.location")}
           </span>
-          {locations.map((location) => (
+          {salonFilters.map((salonFilter) => (
             <button
-              key={location.key}
-              onClick={() => setActiveLocation(location.value)}
+              key={salonFilter.key}
+              onClick={() => setActiveSalon(salonFilter.value)}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
-                activeLocation === location.value
+                activeSalon === salonFilter.value
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
               }`}
             >
-              {location.label}
+              {salonFilter.label}
             </button>
           ))}
         </div>

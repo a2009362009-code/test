@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Clock3, Scissors, UserRound, XCircle } from "lucide-react";
+import { CalendarDays, Clock3, MapPin, Scissors, UserRound, XCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { ApiError, api } from "@/lib/api";
@@ -105,6 +105,11 @@ const ProfileOrders = () => {
                   <p className="flex items-center gap-2 text-sm text-muted-foreground">
                     <UserRound className="h-4 w-4" />
                     {booking.barber_name}
+                  </p>
+                  <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    {tr("profile.orders.salon")}: {booking.salon_name}
+                    {booking.salon_address ? ` - ${booking.salon_address}` : ""}
                   </p>
                   <p className="flex items-center gap-2 text-sm text-muted-foreground">
                     <CalendarDays className="h-4 w-4" />

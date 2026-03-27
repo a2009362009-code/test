@@ -24,6 +24,9 @@ export interface ApiMyBooking {
   service_price: string;
   barber_id: number;
   barber_name: string;
+  salon_id: number;
+  salon_name: string;
+  salon_address: string;
   date: string;
   time: string;
   created_at: string;
@@ -247,23 +250,49 @@ const mockApi = {
       updated_at: now,
     }));
   },
-  getBarbers: async (): Promise<ApiBarber[]> => {
+  getBarbers: async (salonId?: number): Promise<ApiBarber[]> => {
     await wait();
-    return masters.map((master, index) => ({
-      id: Number(master.id) || index + 1,
-      name: master.name,
-      role: master.role,
-      experience_years: parseYears(master.experience),
-      rating: master.rating,
-      reviews_count: master.reviews,
-      image_url: master.image,
-      is_available: master.available,
-      specialties: master.specialties,
-      location: master.location,
-      bio: master.bio,
-      is_active: true,
-      created_at: new Date().toISOString(),
-    }));
+    const now = new Date().toISOString();
+    const items = masters.map((master, index) => {
+      const salon =
+        seedSalons.find((item) => item.code === master.salonCode) ||
+        seedSalons.find((item) => item.id === master.salonId);
+      const resolvedSalonId = Number(master.salonId) || Number(salon?.id) || 0;
+      return {
+        id: Number(master.id) || index + 1,
+        name: master.name,
+        role: master.role,
+        experience_years: parseYears(master.experience),
+        rating: master.rating,
+        reviews_count: master.reviews,
+        image_url: master.image,
+        is_available: master.available,
+        specialties: master.specialties,
+        salon_id: resolvedSalonId,
+        salon: {
+          id: resolvedSalonId,
+          code: salon?.code || master.salonCode,
+          name: salon?.name || master.salonName,
+          address: salon?.address || master.salonAddress,
+          work_hours: salon?.workHours || "09:00 - 21:00",
+          latitude: salon?.latitude ?? 0,
+          longitude: salon?.longitude ?? 0,
+          is_active: salon?.isActive ?? true,
+          sort_order: salon?.sortOrder ?? 0,
+          created_at: now,
+          updated_at: now,
+        },
+        bio: master.bio,
+        is_active: true,
+        created_at: now,
+      };
+    });
+
+    if (typeof salonId === "number") {
+      return items.filter((master) => master.salon_id === salonId);
+    }
+
+    return items;
   },
   getServices: async (): Promise<ApiService[]> => {
     await wait();
@@ -422,6 +451,9 @@ const mockApi = {
         service_price: String(service?.price ?? 0),
         barber_id: booking.barberId,
         barber_name: barber?.name ?? `Barber #${booking.barberId}`,
+        salon_id: Number(barber?.salonId || 0),
+        salon_name: barber?.salonName || "Salon not assigned",
+        salon_address: barber?.salonAddress || "",
         date: booking.date,
         time: `${booking.time.slice(0, 5)}:00`,
         created_at: booking.createdAt,
@@ -599,8 +631,20 @@ const realApi = {
       return toApiError(error);
     }
   },
-  getBarbers: async (): Promise<ApiBarber[]> => {
+  getBarbers: async (salonId?: number): Promise<ApiBarber[]> => {
     try {
+      if (typeof salonId === "number") {
+        return await unwrapOpenApiResponse(
+          client.GET("/api/barbers", {
+            params: {
+              query: {
+                salonId,
+              },
+            },
+          }),
+        );
+      }
+
       return await unwrapOpenApiResponse(client.GET("/api/barbers"));
     } catch (error) {
       return toApiError(error);

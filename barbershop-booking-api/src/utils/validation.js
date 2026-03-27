@@ -152,6 +152,10 @@ const productsQuerySchema = z.object({
   type: z.string().min(1).max(60).optional()
 });
 
+const barbersQuerySchema = z.object({
+  salonId: z.coerce.number().int().positive().optional()
+});
+
 const salonCodeSchema = z
   .string()
   .trim()
@@ -214,6 +218,7 @@ module.exports = {
   bookingsQuerySchema,
   usersQuerySchema,
   productsQuerySchema,
+  barbersQuerySchema,
   salonCreateSchema,
   salonUpdateSchema,
   salonsAdminQuerySchema,

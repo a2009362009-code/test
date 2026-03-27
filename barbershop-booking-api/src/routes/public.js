@@ -6,6 +6,7 @@ const { requireAuth, requireRole } = require('../middleware/auth');
 const { createRateLimit } = require('../middleware/rate-limit');
 const {
   bookingSchema,
+  barbersQuerySchema,
   slotQuerySchema,
   productsQuerySchema,
   registerSchema,
@@ -67,9 +68,14 @@ router.get('/salons', async (req, res, next) => {
 });
 
 router.get('/barbers', async (req, res, next) => {
+  const { data, error } = validate(barbersQuerySchema, req.query);
+  if (error) {
+    return res.status(400).json({ error: 'Invalid query', details: error.fieldErrors });
+  }
+
   try {
-    const result = await pool.query(
-      `
+    const params = [];
+    let sql = `
       SELECT
         b.id,
         b.name,
@@ -81,17 +87,36 @@ router.get('/barbers', async (req, res, next) => {
         b.is_available,
         b.specialties,
         b.salon_id,
-        COALESCE(s.address, b.location) AS location,
+        json_build_object(
+          'id', s.id,
+          'code', s.code,
+          'name', s.name,
+          'address', s.address,
+          'work_hours', s.work_hours,
+          'latitude', s.latitude,
+          'longitude', s.longitude,
+          'is_active', s.is_active,
+          'sort_order', s.sort_order,
+          'created_at', s.created_at,
+          'updated_at', s.updated_at
+        ) AS salon,
         b.bio,
         b.is_active,
         b.created_at
       FROM barbers b
-      LEFT JOIN salons s ON s.id = b.salon_id AND s.is_active = true
+      JOIN salons s ON s.id = b.salon_id
       WHERE b.is_active = true
-        AND (b.salon_id IS NULL OR s.id IS NOT NULL)
-      ORDER BY b.name
-      `
-    );
+        AND s.is_active = true
+    `;
+
+    if (data.salonId) {
+      params.push(data.salonId);
+      sql += ` AND b.salon_id = $${params.length}`;
+    }
+
+    sql += ' ORDER BY b.name';
+
+    const result = await pool.query(sql, params);
     res.json(result.rows);
   } catch (err) {
     next(err);
@@ -338,11 +363,11 @@ router.get('/slots', async (req, res, next) => {
       SELECT s.id, s.barber_id, s.date, s.time
       FROM slots s
       JOIN barbers b ON b.id = s.barber_id
-      LEFT JOIN salons sl ON sl.id = b.salon_id AND sl.is_active = true
+      JOIN salons sl ON sl.id = b.salon_id
       WHERE s.status = $1
         AND s.date = $2
         AND b.is_active = true
-        AND (b.salon_id IS NULL OR sl.id IS NOT NULL)
+        AND sl.is_active = true
     `;
 
     if (data.barberId) {
@@ -460,12 +485,16 @@ router.get('/bookings/me', requireAuth, requireRole('user'), async (req, res, ne
         s.price AS service_price,
         b.barber_id,
         br.name AS barber_name,
+        br.salon_id,
+        sl.name AS salon_name,
+        sl.address AS salon_address,
         TO_CHAR(b.date, 'YYYY-MM-DD') AS date,
         TO_CHAR(b.time, 'HH24:MI:SS') AS time,
         b.created_at
       FROM bookings b
       JOIN services s ON s.id = b.service_id
       JOIN barbers br ON br.id = b.barber_id
+      LEFT JOIN salons sl ON sl.id = br.salon_id
       WHERE b.user_id = $1
       ORDER BY b.date DESC, b.time DESC, b.id DESC
       `,
@@ -643,10 +672,10 @@ router.post('/bookings', requireAuth, requireRole('user'), async (req, res, next
       `
       SELECT b.id
       FROM barbers b
-      LEFT JOIN salons s ON s.id = b.salon_id
+      JOIN salons s ON s.id = b.salon_id
       WHERE b.id = $1
         AND b.is_active = true
-        AND (b.salon_id IS NULL OR s.is_active = true)
+        AND s.is_active = true
       `,
       [data.barberId]
     );

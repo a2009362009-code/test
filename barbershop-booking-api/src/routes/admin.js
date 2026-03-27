@@ -392,10 +392,10 @@ router.post('/slots', async (req, res, next) => {
       `
       SELECT b.id
       FROM barbers b
-      LEFT JOIN salons s ON s.id = b.salon_id
+      JOIN salons s ON s.id = b.salon_id
       WHERE b.id = $1
         AND b.is_active = true
-        AND (b.salon_id IS NULL OR s.is_active = true)
+        AND s.is_active = true
       `,
       [data.barberId]
     );

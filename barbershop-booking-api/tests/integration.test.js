@@ -175,6 +175,21 @@ test('user can create and update own barber review', async (t) => {
     Number(targetBarber.reviews_count),
     Number(updateReviewResponse.body.barber.reviews_count)
   );
+  assert.ok(Number.isInteger(targetBarber.salon_id));
+  assert.ok(targetBarber.salon);
+  assert.equal(Number(targetBarber.salon.id), Number(targetBarber.salon_id));
+
+  const filteredBySalonResponse = await request(app)
+    .get('/api/barbers')
+    .query({ salonId: targetBarber.salon_id });
+
+  assert.equal(filteredBySalonResponse.statusCode, 200);
+  assert.ok(Array.isArray(filteredBySalonResponse.body));
+  assert.ok(
+    filteredBySalonResponse.body.every(
+      (barber) => Number(barber.salon_id) === Number(targetBarber.salon_id)
+    )
+  );
 });
 
 test('user can view profile, list own bookings and cancel booking', async (t) => {

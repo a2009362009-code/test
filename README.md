@@ -13,6 +13,16 @@ Monorepo with:
 4. `barbershop-booking-api/db/` - migrations, schema snapshot, and seed SQL
 5. `barbershop-booking-api/tests/` - backend smoke and integration tests
 
+## Domain Model (Salons and Barbers)
+
+1. A barber belongs to a salon via `barbers.salon_id`.
+2. Salon data (`name`, `address`, `latitude`, `longitude`, `work_hours`) is stored in `salons`.
+3. Frontend treats salon as the primary company/location entity:
+   - masters are filtered by salon,
+   - salon name/address is shown in master/profile flows,
+   - salon markers are shown on the map.
+4. Booking and slot flows validate that the barber belongs to an active salon.
+
 ## Local Run (Full Stack)
 
 ### One-command PowerShell launcher (Windows)

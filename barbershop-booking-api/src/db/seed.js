@@ -41,7 +41,6 @@ const barbers = [
     imageUrl: 'https://placehold.co/600x600/png?text=Timur+K',
     isAvailable: true,
     specialties: ['Skin fade', 'Classic cut', 'Beard styling'],
-    location: 'Chuy Ave, 150',
     bio: 'Focuses on precision fades and modern men styles.',
     isActive: true
   },
@@ -55,7 +54,6 @@ const barbers = [
     imageUrl: 'https://placehold.co/600x600/png?text=Aida+O',
     isAvailable: true,
     specialties: ['Layered cuts', 'Styling', 'Hair care'],
-    location: 'Chuy Ave, 150',
     bio: 'Creates soft forms and practical daily styling routines.',
     isActive: true
   },
@@ -69,7 +67,6 @@ const barbers = [
     imageUrl: 'https://placehold.co/600x600/png?text=Nursultan+I',
     isAvailable: true,
     specialties: ['Taper fade', 'Beard trim', 'Contour line'],
-    location: 'Jibek Jolu, 42',
     bio: 'Strong at clean lines and quick, consistent execution.',
     isActive: true
   },
@@ -83,7 +80,6 @@ const barbers = [
     imageUrl: 'https://placehold.co/600x600/png?text=Elena+P',
     isAvailable: true,
     specialties: ['Coloring', 'Balayage', 'Hair recovery'],
-    location: 'Akhunbaev St, 98',
     bio: 'Works with natural shades and restorative color techniques.',
     isActive: true
   },
@@ -97,7 +93,6 @@ const barbers = [
     imageUrl: 'https://placehold.co/600x600/png?text=Bekzat+S',
     isAvailable: true,
     specialties: ['Buzz cut', 'Kids haircut', 'Simple styling'],
-    location: 'Jibek Jolu, 42',
     bio: 'Fast service and good choice for regular maintenance cuts.',
     isActive: true
   },
@@ -111,7 +106,6 @@ const barbers = [
     imageUrl: 'https://placehold.co/600x600/png?text=Madina+R',
     isAvailable: true,
     specialties: ['Evening styling', 'Texture', 'Volume'],
-    location: 'Akhunbaev St, 98',
     bio: 'Builds long-lasting volume and polished final look.',
     isActive: true
   }
@@ -419,9 +413,9 @@ async function upsertBarbers(client, salonIdByCode) {
       `
       INSERT INTO barbers (
         name, role, experience_years, rating, reviews_count, image_url, is_available,
-        specialties, salon_id, location, bio, is_active
+        specialties, salon_id, bio, is_active
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text[], $9, $10, $11, $12)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text[], $9, $10, $11)
       ON CONFLICT (name) DO UPDATE SET
         role = EXCLUDED.role,
         experience_years = EXCLUDED.experience_years,
@@ -431,7 +425,6 @@ async function upsertBarbers(client, salonIdByCode) {
         is_available = EXCLUDED.is_available,
         specialties = EXCLUDED.specialties,
         salon_id = EXCLUDED.salon_id,
-        location = EXCLUDED.location,
         bio = EXCLUDED.bio,
         is_active = EXCLUDED.is_active
       RETURNING id, name
@@ -446,7 +439,6 @@ async function upsertBarbers(client, salonIdByCode) {
         barber.isAvailable,
         barber.specialties,
         salonId,
-        barber.location,
         barber.bio,
         barber.isActive
       ]
