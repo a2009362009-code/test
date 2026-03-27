@@ -2,8 +2,6 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { mapBarbersToMasters } from "@/lib/masters";
-import { masters as fallbackMasters } from "@/data/masters";
-import { USE_MOCK_API } from "@/lib/config";
 
 export function useMasters() {
   const query = useQuery({
@@ -12,19 +10,13 @@ export function useMasters() {
     retry: 1,
   });
 
-  const hasApiData = Boolean(query.data?.length);
-  const shouldUseFallback = USE_MOCK_API || query.isError || (query.isSuccess && !hasApiData);
-
   const masters = useMemo(() => {
-    if (shouldUseFallback) {
-      return fallbackMasters;
-    }
     return mapBarbersToMasters(query.data || []);
-  }, [query.data, shouldUseFallback]);
+  }, [query.data]);
 
   return {
     ...query,
     masters,
-    isFallback: shouldUseFallback,
+    isFallback: false,
   };
 }

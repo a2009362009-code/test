@@ -33,7 +33,7 @@ const translations: Translations = {
   },
   "hero.book": { kg: "Жазылуу", ru: "Записаться", en: "Book now" },
   "hero.shop": { kg: "Дүкөнгө өтүү", ru: "Перейти в магазин", en: "Shop" },
-  "hero.locations": { kg: "3 филиал", ru: "3 филиала", en: "3 locations" },
+  "hero.locations": { kg: "Салондор", ru: "Салоны", en: "Salons" },
   "hero.hours": { kg: "09:00 - 21:00", ru: "09:00 - 21:00", en: "9:00 - 21:00" },
 
   "masters.title": { kg: "Биздин мастерлер", ru: "Наши мастера", en: "Our masters" },
@@ -135,7 +135,7 @@ const translations: Translations = {
   "shop.men": { kg: "Эркектер үчүн", ru: "Для мужчин", en: "For men" },
   "shop.women": { kg: "Аялдар үчүн", ru: "Для женщин", en: "For women" },
 
-  "salons.title": { kg: "Биздин филиалдар", ru: "Наши салоны", en: "Our salons" },
+  "salons.title": { kg: "Салондор", ru: "Салоны", en: "Salons" },
   "salons.subtitle": {
     kg: "Ар бир райондо ыңгайлуу дарек",
     ru: "Удобные локации в разных районах",

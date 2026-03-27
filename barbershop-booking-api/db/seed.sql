@@ -1,3 +1,47 @@
+WITH source(code, name, address, work_hours, latitude, longitude, sort_order) AS (
+  VALUES
+    (
+      'center',
+      'HairLine Center',
+      'Chuy Ave, 150',
+      '09:00 - 21:00',
+      42.876731,
+      74.606215,
+      1
+    ),
+    (
+      'north',
+      'HairLine North',
+      'Jibek Jolu, 42',
+      '10:00 - 20:00',
+      42.889112,
+      74.628954,
+      2
+    ),
+    (
+      'south',
+      'HairLine South',
+      'Akhunbaev St, 98',
+      '09:00 - 21:00',
+      42.833481,
+      74.602614,
+      3
+    )
+),
+updated AS (
+  UPDATE salons s
+  SET
+    code = source.code,
+    address = source.address,
+    work_hours = source.work_hours,
+    latitude = source.latitude,
+    longitude = source.longitude,
+    sort_order = source.sort_order,
+    is_active = TRUE,
+    updated_at = NOW()
+  FROM source
+  WHERE s.name = source.name
+)
 INSERT INTO salons (
   code,
   name,
@@ -7,34 +51,8 @@ INSERT INTO salons (
   longitude,
   sort_order
 )
-VALUES
-  (
-    'center',
-    'HairLine Center',
-    'Chuy Ave, 150',
-    '09:00 - 21:00',
-    42.876731,
-    74.606215,
-    1
-  ),
-  (
-    'north',
-    'HairLine North',
-    'Jibek Jolu, 42',
-    '10:00 - 20:00',
-    42.889112,
-    74.628954,
-    2
-  ),
-  (
-    'south',
-    'HairLine South',
-    'Akhunbaev St, 98',
-    '09:00 - 21:00',
-    42.833481,
-    74.602614,
-    3
-  )
+SELECT code, name, address, work_hours, latitude, longitude, sort_order
+FROM source
 ON CONFLICT (code) DO UPDATE SET
   name = EXCLUDED.name,
   address = EXCLUDED.address,

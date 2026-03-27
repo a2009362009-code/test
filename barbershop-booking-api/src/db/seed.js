@@ -335,6 +335,37 @@ async function upsertSalons(client) {
   const codes = salons.map((salon) => salon.code);
 
   for (const salon of salons) {
+    const updatedByName = await client.query(
+      `
+      UPDATE salons
+      SET
+        code = $1,
+        address = $3,
+        work_hours = $4,
+        latitude = $5,
+        longitude = $6,
+        sort_order = $7,
+        is_active = TRUE,
+        updated_at = NOW()
+      WHERE name = $2
+      RETURNING id, code
+      `,
+      [
+        salon.code,
+        salon.name,
+        salon.address,
+        salon.workHours,
+        salon.latitude,
+        salon.longitude,
+        salon.sortOrder
+      ]
+    );
+
+    if (updatedByName.rowCount) {
+      salonIdByCode.set(updatedByName.rows[0].code, updatedByName.rows[0].id);
+      continue;
+    }
+
     const result = await client.query(
       `
       INSERT INTO salons (

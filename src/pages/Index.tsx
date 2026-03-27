@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+﻿import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Clock, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -40,12 +40,6 @@ function formatSalonsCount(lang: Lang, count: number) {
   return `${count} филиал`;
 }
 
-function fallbackText(lang: Lang) {
-  if (lang === "en") return "Fallback data is shown while API is unavailable.";
-  if (lang === "ru") return "Показаны резервные данные, пока API недоступно.";
-  return "API жеткиликсиз учурда резервдик маалымат көрсөтүлдү.";
-}
-
 function sectionTitleSalons(lang: Lang) {
   if (lang === "en") return "Salons";
   if (lang === "ru") return "Салоны";
@@ -54,9 +48,24 @@ function sectionTitleSalons(lang: Lang) {
 
 const Index = () => {
   const { tr, lang } = useI18n();
-  const { masters, isLoading: mastersLoading, isFallback: mastersFallback } = useMasters();
-  const { products, isLoading: productsLoading, isFallback: productsFallback } = useProducts();
-  const { salons, isLoading: salonsLoading, isFallback: salonsFallback } = useSalons();
+  const {
+    masters,
+    isLoading: mastersLoading,
+    isError: mastersError,
+    refetch: refetchMasters,
+  } = useMasters();
+  const {
+    products,
+    isLoading: productsLoading,
+    isError: productsError,
+    refetch: refetchProducts,
+  } = useProducts();
+  const {
+    salons,
+    isLoading: salonsLoading,
+    isError: salonsError,
+    refetch: refetchSalons,
+  } = useSalons();
 
   const heroSalonsLabel = useMemo(
     () => formatSalonsCount(lang, salons.length),
@@ -129,9 +138,6 @@ const Index = () => {
           <div>
             <h2 className="text-2xl font-semibold">{tr("masters.title")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{tr("masters.subtitle")}</p>
-            {mastersFallback && (
-              <p className="mt-2 text-xs text-muted-foreground">{fallbackText(lang)}</p>
-            )}
           </div>
           <Link
             to="/masters"
@@ -141,21 +147,40 @@ const Index = () => {
           </Link>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {mastersLoading && masters.length === 0
-            ? Array.from({ length: 4 }).map((_, index) => (
-                <div key={`master-skeleton-${index}`} className="h-[360px] animate-pulse rounded-2xl bg-secondary/60" />
-              ))
-            : masters.map((master, index) => (
-                <motion.div
-                  key={master.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1, duration: 0.4 }}
-                >
-                  <MasterCard master={master} />
-                </motion.div>
-              ))}
+          {mastersLoading && masters.length === 0 &&
+            Array.from({ length: 4 }).map((_, index) => (
+              <div key={`master-skeleton-${index}`} className="h-[360px] animate-pulse rounded-2xl bg-secondary/60" />
+            ))}
+
+          {!mastersLoading && mastersError && (
+            <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+              <p className="text-sm text-muted-foreground">Could not load masters.</p>
+              <button
+                className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
+                onClick={() => refetchMasters()}
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!mastersLoading && !mastersError && masters.length === 0 && (
+            <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+              <p className="text-sm text-muted-foreground">{tr("masters.notfound")}</p>
+            </div>
+          )}
+
+          {!mastersLoading && !mastersError && masters.map((master, index) => (
+            <motion.div
+              key={master.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+            >
+              <MasterCard master={master} />
+            </motion.div>
+          ))}
         </div>
       </section>
 
@@ -165,9 +190,6 @@ const Index = () => {
             <div>
               <h2 className="text-2xl font-semibold">{tr("products.title")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{tr("products.subtitle")}</p>
-              {productsFallback && (
-                <p className="mt-2 text-xs text-muted-foreground">{fallbackText(lang)}</p>
-              )}
             </div>
             <Link
               to="/shop"
@@ -177,44 +199,81 @@ const Index = () => {
             </Link>
           </div>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {productsLoading && products.length === 0
-              ? Array.from({ length: 4 }).map((_, index) => (
-                  <div key={`product-skeleton-${index}`} className="h-[340px] animate-pulse rounded-2xl bg-card/70" />
-                ))
-              : products.slice(0, 4).map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1, duration: 0.4 }}
-                  >
-                    <ProductCard product={product} />
-                  </motion.div>
-                ))}
+            {productsLoading && products.length === 0 &&
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={`product-skeleton-${index}`} className="h-[340px] animate-pulse rounded-2xl bg-card/70" />
+              ))}
+
+            {!productsLoading && productsError && (
+              <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+                <p className="text-sm text-muted-foreground">Could not load products.</p>
+                <button
+                  className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
+                  onClick={() => refetchProducts()}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {!productsLoading && !productsError && products.length === 0 && (
+              <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+                <p className="text-sm text-muted-foreground">No products available.</p>
+              </div>
+            )}
+
+            {!productsLoading && !productsError && products.slice(0, 4).map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.4 }}
+              >
+                <ProductCard product={product} />
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-20">
         <h2 className="text-2xl font-semibold">{sectionTitleSalons(lang)}</h2>
-        {salonsFallback && <p className="mt-2 text-xs text-muted-foreground">{fallbackText(lang)}</p>}
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {salonsLoading && salons.length === 0
-            ? Array.from({ length: 3 }).map((_, index) => (
-                <div key={`salon-skeleton-${index}`} className="h-[148px] animate-pulse rounded-2xl bg-secondary/60" />
-              ))
-            : salons.map((salon) => (
-                <div key={salon.id} className="rounded-2xl bg-card p-6 card-shadow">
-                  <h3 className="font-semibold">{salon.name}</h3>
-                  <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" /> {salon.address}
-                  </p>
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" /> {salon.workHours}
-                  </p>
-                </div>
-              ))}
+          {salonsLoading && salons.length === 0 &&
+            Array.from({ length: 3 }).map((_, index) => (
+              <div key={`salon-skeleton-${index}`} className="h-[148px] animate-pulse rounded-2xl bg-secondary/60" />
+            ))}
+
+          {!salonsLoading && salonsError && (
+            <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+              <p className="text-sm text-muted-foreground">Could not load salons.</p>
+              <button
+                className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
+                onClick={() => refetchSalons()}
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!salonsLoading && !salonsError && salons.length === 0 && (
+            <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+              <p className="text-sm text-muted-foreground">No salons available.</p>
+            </div>
+          )}
+
+          {!salonsLoading && !salonsError && salons.map((salon) => (
+            <div key={salon.id} className="rounded-2xl bg-card p-6 card-shadow">
+              <h3 className="font-semibold">{salon.name}</h3>
+              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="h-3.5 w-3.5" /> {salon.address}
+              </p>
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" /> {salon.workHours}
+              </p>
+            </div>
+          ))}
         </div>
         <div className="mt-8">
           <SalonsMap locations={salons} />

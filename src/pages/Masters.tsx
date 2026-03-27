@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { motion } from "framer-motion";
 import MasterCard from "@/components/MasterCard";
 import { useI18n } from "@/lib/i18n";
@@ -33,8 +33,8 @@ function normalizeLocation(value: string) {
 }
 
 const Masters = () => {
-  const { tr, lang } = useI18n();
-  const { masters, isLoading, isFallback } = useMasters();
+  const { tr } = useI18n();
+  const { masters, isLoading, isError, refetch } = useMasters();
 
   const filters = [
     { key: "all", label: tr("filter.all"), value: "all" },
@@ -70,15 +70,6 @@ const Masters = () => {
       >
         <h1 className="text-3xl font-semibold">{tr("masters.page.title")}</h1>
         <p className="mt-2 text-muted-foreground">{tr("masters.page.subtitle")}</p>
-        {isFallback && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            {lang === "en"
-              ? "Fallback data is shown while API is unavailable."
-              : lang === "ru"
-                ? "Показаны резервные данные, пока API недоступно."
-                : "API жеткиликсиз учурда резервдик маалымат көрсөтүлдү."}
-          </p>
-        )}
       </motion.div>
 
       <div className="mt-8 flex flex-wrap gap-6">
@@ -121,27 +112,40 @@ const Masters = () => {
       </div>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {isLoading && masters.length === 0
-          ? Array.from({ length: 8 }).map((_, index) => (
-              <div key={`masters-skeleton-${index}`} className="h-[360px] animate-pulse rounded-2xl bg-secondary/60" />
-            ))
-          : filtered.map((master, index) => (
-              <motion.div
-                key={master.id}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05, duration: 0.3 }}
-              >
-                <MasterCard master={master} />
-              </motion.div>
-            ))}
-      </div>
+        {isLoading && masters.length === 0 &&
+          Array.from({ length: 8 }).map((_, index) => (
+            <div key={`masters-skeleton-${index}`} className="h-[360px] animate-pulse rounded-2xl bg-secondary/60" />
+          ))}
 
-      {filtered.length === 0 && (
-        <div className="mt-16 text-center">
-          <p className="text-muted-foreground">{tr("masters.notfound")}</p>
-        </div>
-      )}
+        {!isLoading && isError && (
+          <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+            <p className="text-sm text-muted-foreground">Could not load masters.</p>
+            <button
+              className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
+              onClick={() => refetch()}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !isError && filtered.length === 0 && (
+          <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+            <p className="text-sm text-muted-foreground">{tr("masters.notfound")}</p>
+          </div>
+        )}
+
+        {!isLoading && !isError && filtered.map((master, index) => (
+          <motion.div
+            key={master.id}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05, duration: 0.3 }}
+          >
+            <MasterCard master={master} />
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 };
