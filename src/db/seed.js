@@ -1,134 +1,62 @@
 const { pool } = require('./pool');
 
-const barbers = [
-  {
-    name: 'Azamat Jusupov',
-    role: 'Barber',
-    experienceYears: 8,
-    rating: 4.9,
-    reviewsCount: 342,
-    imageUrl: '/assets/master-1.jpg',
-    isAvailable: true,
-    specialties: ['Men haircut', 'Shave', 'Styling'],
-    location: 'Center',
-    bio: 'Senior barber focused on clean fades and natural styling.',
-    isActive: true
-  },
-  {
-    name: 'Aigul Satybaldieva',
-    role: 'Stylist',
-    experienceYears: 12,
-    rating: 5.0,
-    reviewsCount: 518,
-    imageUrl: '/assets/master-2.jpg',
-    isAvailable: true,
-    specialties: ['Women haircut', 'Styling', 'Care'],
-    location: 'Center',
-    bio: 'Lead stylist for event looks and premium haircare routines.',
-    isActive: true
-  },
-  {
-    name: 'Daniyar Kasymov',
-    role: 'Barber',
-    experienceYears: 5,
-    rating: 4.8,
-    reviewsCount: 189,
-    imageUrl: '/assets/master-3.jpg',
-    isAvailable: false,
-    specialties: ['Men haircut', 'Beard design'],
-    location: 'North',
-    bio: 'Modern cuts specialist with strong attention to detail.',
-    isActive: true
-  },
-  {
-    name: 'Elnura Toktosunova',
-    role: 'Colorist',
-    experienceYears: 10,
-    rating: 4.9,
-    reviewsCount: 427,
-    imageUrl: '/assets/master-4.jpg',
-    isAvailable: true,
-    specialties: ['Coloring', 'Highlights', 'Balayage'],
-    location: 'South',
-    bio: 'Certified colorist focused on natural tones and healthy shine.',
-    isActive: true
+// Real-data only policy:
+// keep seed lists empty by default and add actual business data explicitly.
+const salons = [];
+const barbers = [];
+const services = [];
+const products = [];
+
+async function upsertSalons(client) {
+  for (const salon of salons) {
+    await client.query(
+      `
+      INSERT INTO salons (
+        code, name, address, work_hours, latitude, longitude, is_active, sort_order
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      ON CONFLICT (code) DO UPDATE SET
+        name = EXCLUDED.name,
+        address = EXCLUDED.address,
+        work_hours = EXCLUDED.work_hours,
+        latitude = EXCLUDED.latitude,
+        longitude = EXCLUDED.longitude,
+        is_active = EXCLUDED.is_active,
+        sort_order = EXCLUDED.sort_order,
+        updated_at = NOW()
+      `,
+      [
+        salon.code,
+        salon.name,
+        salon.address,
+        salon.workHours,
+        salon.latitude || null,
+        salon.longitude || null,
+        salon.isActive !== false,
+        Number.isInteger(salon.sortOrder) ? salon.sortOrder : 100
+      ]
+    );
   }
-];
+}
 
-const services = [
-  { name: 'Classic haircut', duration: 30, price: 500 },
-  { name: 'Fade haircut', duration: 45, price: 700 },
-  { name: 'Beard trim', duration: 20, price: 400 },
-  { name: 'Hair coloring', duration: 60, price: 1500 },
-  { name: 'Hair styling', duration: 35, price: 900 }
-];
-
-const products = [
-  {
-    name: 'Volume shampoo',
-    description: 'Professional shampoo for thin hair. Adds volume and shine.',
-    price: 650,
-    imageUrl: '/assets/product-1.jpg',
-    category: 'unisex',
-    type: 'Care',
-    stockQty: 30
-  },
-  {
-    name: 'Styling cream',
-    description: 'Light hold with matte finish for natural texture.',
-    price: 850,
-    imageUrl: '/assets/product-2.jpg',
-    category: 'men',
-    type: 'Styling',
-    stockQty: 25
-  },
-  {
-    name: 'Hair oil',
-    description: 'Nourishing argan oil that restores and protects hair.',
-    price: 1100,
-    imageUrl: '/assets/product-3.jpg',
-    category: 'women',
-    type: 'Care',
-    stockQty: 20
-  },
-  {
-    name: 'Scalp detox shampoo',
-    description: 'Detox formula for oily scalp and deep cleansing.',
-    price: 550,
-    imageUrl: '/assets/product-4.jpg',
-    category: 'men',
-    type: 'Care',
-    stockQty: 28
-  },
-  {
-    name: 'Heat protection spray',
-    description: 'Protects hair up to 230C and keeps smooth finish.',
-    price: 750,
-    imageUrl: '/assets/product-1.jpg',
-    category: 'women',
-    type: 'Protection',
-    stockQty: 24
-  },
-  {
-    name: 'Beard wax',
-    description: 'Medium hold wax for beard shape and hydration.',
-    price: 480,
-    imageUrl: '/assets/product-2.jpg',
-    category: 'men',
-    type: 'Styling',
-    stockQty: 32
+async function loadSalonIdsByCode(client) {
+  const result = await client.query('SELECT id, code FROM salons');
+  const map = new Map();
+  for (const row of result.rows) {
+    map.set(row.code, row.id);
   }
-];
+  return map;
+}
 
-async function upsertBarbers(client) {
+async function upsertBarbers(client, salonIdByCode) {
   for (const barber of barbers) {
     await client.query(
       `
       INSERT INTO barbers (
         name, role, experience_years, rating, reviews_count, image_url,
-        is_available, specialties, location, bio, is_active
+        is_available, specialties, location, bio, salon_id, is_active
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text[], $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::text[], $9, $10, $11, $12)
       ON CONFLICT (name) DO UPDATE SET
         role = EXCLUDED.role,
         experience_years = EXCLUDED.experience_years,
@@ -139,6 +67,7 @@ async function upsertBarbers(client) {
         specialties = EXCLUDED.specialties,
         location = EXCLUDED.location,
         bio = EXCLUDED.bio,
+        salon_id = EXCLUDED.salon_id,
         is_active = EXCLUDED.is_active
       `,
       [
@@ -152,7 +81,8 @@ async function upsertBarbers(client) {
         barber.specialties,
         barber.location,
         barber.bio,
-        barber.isActive
+        barber.salonCode ? (salonIdByCode.get(barber.salonCode) || null) : null,
+        barber.isActive !== false
       ]
     );
   }
@@ -204,6 +134,54 @@ async function upsertProducts(client) {
   }
 }
 
+async function deactivateMissingBarbers(client) {
+  const names = barbers.map((barber) => barber.name);
+  if (!names.length) {
+    return;
+  }
+
+  await client.query(
+    'UPDATE barbers SET is_active = FALSE WHERE is_active = TRUE AND name <> ALL($1::text[])',
+    [names]
+  );
+}
+
+async function deactivateMissingServices(client) {
+  const names = services.map((service) => service.name);
+  if (!names.length) {
+    return;
+  }
+
+  await client.query(
+    'UPDATE services SET is_active = FALSE WHERE is_active = TRUE AND name <> ALL($1::text[])',
+    [names]
+  );
+}
+
+async function deactivateMissingSalons(client) {
+  const codes = salons.map((salon) => salon.code);
+  if (!codes.length) {
+    return;
+  }
+
+  await client.query(
+    'UPDATE salons SET is_active = FALSE, updated_at = NOW() WHERE is_active = TRUE AND code <> ALL($1::text[])',
+    [codes]
+  );
+}
+
+async function deactivateMissingProducts(client) {
+  const names = products.map((product) => product.name);
+  if (!names.length) {
+    return;
+  }
+
+  await client.query(
+    'UPDATE products SET is_active = FALSE WHERE is_active = TRUE AND name <> ALL($1::text[])',
+    [names]
+  );
+}
+
 async function resetDemoData(client) {
   await client.query('TRUNCATE bookings, slots RESTART IDENTITY');
 }
@@ -218,9 +196,15 @@ async function refreshSeeds(options = {}) {
       await resetDemoData(client);
     }
 
-    await upsertBarbers(client);
+    await upsertSalons(client);
+    const salonIdByCode = await loadSalonIdsByCode(client);
+    await upsertBarbers(client, salonIdByCode);
     await upsertServices(client);
     await upsertProducts(client);
+    await deactivateMissingSalons(client);
+    await deactivateMissingBarbers(client);
+    await deactivateMissingServices(client);
+    await deactivateMissingProducts(client);
 
     await client.query('COMMIT');
   } catch (err) {
@@ -231,4 +215,4 @@ async function refreshSeeds(options = {}) {
   }
 }
 
-module.exports = { refreshSeeds, barbers, services, products };
+module.exports = { refreshSeeds, salons, barbers, services, products };

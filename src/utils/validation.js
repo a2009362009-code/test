@@ -2,7 +2,46 @@ const { z } = require('zod');
 
 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-const phoneRegex = /^[0-9+()\-\s]{7,20}$/;
+const phoneRegex = /^\+?[0-9]{7,20}$/;
+const salonCodeRegex = /^[a-z0-9][a-z0-9-_]{1,39}$/;
+
+function normalizeFullName(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+function normalizeEmail(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase();
+}
+
+function normalizePhone(value) {
+  const raw = String(value || '').trim();
+  const hasPlus = raw.startsWith('+');
+  const digitsOnly = raw.replace(/\D/g, '');
+  if (!digitsOnly) {
+    return '';
+  }
+  return hasPlus ? `+${digitsOnly}` : digitsOnly;
+}
+
+function normalizeRegisterPayload(payload = {}) {
+  return {
+    ...payload,
+    fullName: normalizeFullName(payload.fullName),
+    email: normalizeEmail(payload.email),
+    phone: normalizePhone(payload.phone)
+  };
+}
+
+function normalizeUserLoginPayload(payload = {}) {
+  return {
+    ...payload,
+    email: normalizeEmail(payload.email)
+  };
+}
 
 function isValidDateString(value) {
   if (!dateRegex.test(value)) {
@@ -81,6 +120,36 @@ const productsQuerySchema = z.object({
   type: z.string().min(1).max(60).optional()
 });
 
+const salonCreateSchema = z.object({
+  code: z.string().regex(salonCodeRegex, 'Invalid salon code'),
+  name: z.string().min(2).max(120),
+  address: z.string().min(3).max(240),
+  workHours: z.string().min(3).max(80),
+  latitude: z.coerce.number().min(-90).max(90).optional(),
+  longitude: z.coerce.number().min(-180).max(180).optional(),
+  sortOrder: z.coerce.number().int().min(0).max(100000).optional(),
+  isActive: z.boolean().optional()
+});
+
+const salonUpdateSchema = z.object({
+  name: z.string().min(2).max(120).optional(),
+  address: z.string().min(3).max(240).optional(),
+  workHours: z.string().min(3).max(80).optional(),
+  latitude: z.coerce.number().min(-90).max(90).nullable().optional(),
+  longitude: z.coerce.number().min(-180).max(180).nullable().optional(),
+  sortOrder: z.coerce.number().int().min(0).max(100000).optional(),
+  isActive: z.boolean().optional()
+}).refine((payload) => Object.keys(payload).length > 0, {
+  message: 'At least one field is required'
+});
+
+const salonsAdminQuerySchema = z.object({
+  includeInactive: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
+    .optional()
+});
+
 function validate(schema, data) {
   const result = schema.safeParse(data);
   if (result.success) {
@@ -99,5 +168,13 @@ module.exports = {
   bookingsQuerySchema,
   usersQuerySchema,
   productsQuerySchema,
+  salonCreateSchema,
+  salonUpdateSchema,
+  salonsAdminQuerySchema,
+  normalizeFullName,
+  normalizeEmail,
+  normalizePhone,
+  normalizeRegisterPayload,
+  normalizeUserLoginPayload,
   validate
 };

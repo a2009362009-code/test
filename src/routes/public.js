@@ -4,40 +4,93 @@ const jwt = require('jsonwebtoken');
 const { pool } = require('../db/pool');
 const asyncHandler = require('../middleware/asyncHandler');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { createRateLimiter } = require('../middleware/rateLimit');
 const {
   bookingSchema,
   slotQuerySchema,
   productsQuerySchema,
   registerSchema,
   userLoginSchema,
+  normalizeRegisterPayload,
+  normalizeUserLoginPayload,
   validate
 } = require('../utils/validation');
 
 const router = express.Router();
-
-router.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+const userAuthLoginRateLimiter = createRateLimiter({
+  windowMs: process.env.AUTH_LOGIN_RATE_LIMIT_WINDOW_MS,
+  max: process.env.AUTH_LOGIN_RATE_LIMIT_MAX,
+  keyPrefix: 'auth-login'
 });
+
+async function checkDatabase() {
+  await pool.query('SELECT 1');
+}
+
+router.get('/health', asyncHandler(async (req, res) => {
+  try {
+    await checkDatabase();
+    res.json({ status: 'ok' });
+  } catch (err) {
+    res.status(503).json({ status: 'degraded', error: 'Database unavailable' });
+  }
+}));
+
+router.get('/ready', asyncHandler(async (req, res) => {
+  try {
+    await checkDatabase();
+    res.json({ status: 'ready' });
+  } catch (err) {
+    res.status(503).json({ status: 'not_ready', error: 'Database unavailable' });
+  }
+}));
 
 router.get('/barbers', asyncHandler(async (req, res, next) => {
   try {
     const result = await pool.query(
       `
       SELECT
+        b.id,
+        b.name,
+        b.role,
+        b.experience_years,
+        b.rating,
+        b.reviews_count,
+        b.image_url,
+        b.is_available,
+        b.specialties,
+        COALESCE(s.address, b.location) AS location,
+        b.bio,
+        b.salon_id
+      FROM barbers b
+      LEFT JOIN salons s ON s.id = b.salon_id
+      WHERE b.is_active = true
+        AND (b.salon_id IS NULL OR s.is_active = true)
+      ORDER BY b.name
+      `
+    );
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+}));
+
+router.get('/salons', asyncHandler(async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT
         id,
+        code,
         name,
-        role,
-        experience_years,
-        rating,
-        reviews_count,
-        image_url,
-        is_available,
-        specialties,
-        location,
-        bio
-      FROM barbers
+        address,
+        work_hours,
+        latitude,
+        longitude,
+        sort_order
+      FROM salons
       WHERE is_active = true
-      ORDER BY name
+      ORDER BY sort_order ASC, name ASC
       `
     );
     res.json(result.rows);
@@ -105,16 +158,24 @@ router.get('/slots', asyncHandler(async (req, res, next) => {
   }
 
   try {
-    const params = [data.date];
-    let sql = 'SELECT id, barber_id, date, time FROM slots WHERE status = $1 AND date = $2';
-    params.unshift('available');
+    const status = data.status || 'available';
+    const params = [status, data.date];
+    let sql = `
+      SELECT sl.id, sl.barber_id, sl.date, sl.time
+      FROM slots sl
+      JOIN barbers b ON b.id = sl.barber_id AND b.is_active = true
+      LEFT JOIN salons s ON s.id = b.salon_id
+      WHERE sl.status = $1
+        AND sl.date = $2
+        AND (b.salon_id IS NULL OR s.is_active = true)
+    `;
 
     if (data.barberId) {
       params.push(data.barberId);
-      sql += ` AND barber_id = $${params.length}`;
+      sql += ` AND sl.barber_id = $${params.length}`;
     }
 
-    sql += ' ORDER BY time';
+    sql += ' ORDER BY sl.time';
 
     const result = await pool.query(sql, params);
     res.json(result.rows);
@@ -124,7 +185,8 @@ router.get('/slots', asyncHandler(async (req, res, next) => {
 }));
 
 router.post('/auth/register', asyncHandler(async (req, res, next) => {
-  const { data, error } = validate(registerSchema, req.body);
+  const normalizedPayload = normalizeRegisterPayload(req.body);
+  const { data, error } = validate(registerSchema, normalizedPayload);
   if (error) {
     return res.status(400).json({ error: 'Invalid payload', details: error.fieldErrors });
   }
@@ -162,8 +224,9 @@ router.post('/auth/register', asyncHandler(async (req, res, next) => {
   }
 }));
 
-router.post('/auth/login', asyncHandler(async (req, res, next) => {
-  const { data, error } = validate(userLoginSchema, req.body);
+router.post('/auth/login', userAuthLoginRateLimiter, asyncHandler(async (req, res, next) => {
+  const normalizedPayload = normalizeUserLoginPayload(req.body);
+  const { data, error } = validate(userLoginSchema, normalizedPayload);
   if (error) {
     return res.status(400).json({ error: 'Invalid payload', details: error.fieldErrors });
   }
@@ -190,7 +253,7 @@ router.post('/auth/login', asyncHandler(async (req, res, next) => {
     const token = jwt.sign(
       { sub: user.id, role: 'user' },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: process.env.JWT_TTL || '12h' }
     );
 
     res.json({
@@ -241,7 +304,14 @@ router.post('/bookings', requireAuth, requireRole('user'), asyncHandler(async (r
     }
 
     const barberRes = await client.query(
-      'SELECT id FROM barbers WHERE id = $1 AND is_active = true',
+      `
+      SELECT b.id
+      FROM barbers b
+      LEFT JOIN salons s ON s.id = b.salon_id
+      WHERE b.id = $1
+        AND b.is_active = true
+        AND (b.salon_id IS NULL OR s.is_active = true)
+      `,
       [data.barberId]
     );
     if (!barberRes.rowCount) {
@@ -286,6 +356,9 @@ router.post('/bookings', requireAuth, requireRole('user'), asyncHandler(async (r
     });
   } catch (err) {
     await client.query('ROLLBACK');
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Selected time slot is not available' });
+    }
     next(err);
   } finally {
     client.release();

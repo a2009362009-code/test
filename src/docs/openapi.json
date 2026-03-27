@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://barbershop-booking-api.onrender.com"
+      "url": "https://test-4p5l.onrender.com"
     },
     {
       "url": "http://localhost:4000"
@@ -83,15 +83,40 @@
           "type": { "type": "string" },
           "stock_qty": { "type": "integer" }
         }
+      },
+      "Salon": {
+        "type": "object",
+        "required": ["id", "code", "name", "address", "work_hours"],
+        "properties": {
+          "id": { "type": "integer" },
+          "code": { "type": "string" },
+          "name": { "type": "string" },
+          "address": { "type": "string" },
+          "work_hours": { "type": "string" },
+          "latitude": { "type": "string", "nullable": true, "example": "42.876500" },
+          "longitude": { "type": "string", "nullable": true, "example": "74.588200" },
+          "sort_order": { "type": "integer" },
+          "is_active": { "type": "boolean" }
+        }
       }
     }
   },
   "paths": {
     "/api/health": {
       "get": {
-        "summary": "Health check",
+        "summary": "Health check with database connectivity",
         "responses": {
-          "200": { "description": "OK" }
+          "200": { "description": "OK" },
+          "503": { "description": "Database unavailable" }
+        }
+      }
+    },
+    "/api/ready": {
+      "get": {
+        "summary": "Readiness check with database dependency",
+        "responses": {
+          "200": { "description": "Ready" },
+          "503": { "description": "Not ready" }
         }
       }
     },
@@ -100,6 +125,24 @@
         "summary": "List active barbers",
         "responses": {
           "200": { "description": "OK" }
+        }
+      }
+    },
+    "/api/salons": {
+      "get": {
+        "summary": "List active salons",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Salon" }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -135,7 +178,7 @@
     },
     "/api/slots": {
       "get": {
-        "summary": "List available slots",
+        "summary": "List slots",
         "parameters": [
           {
             "name": "date",
@@ -148,10 +191,17 @@
             "in": "query",
             "required": false,
             "schema": { "type": "integer" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["available", "booked", "blocked"] }
           }
         ],
         "responses": {
-          "200": { "description": "OK" }
+          "200": { "description": "OK" },
+          "400": { "description": "Invalid query" }
         }
       }
     },
@@ -185,7 +235,8 @@
         },
         "responses": {
           "200": { "description": "OK" },
-          "401": { "description": "Invalid credentials" }
+          "401": { "description": "Invalid credentials" },
+          "429": { "description": "Too many login attempts" }
         }
       }
     },
@@ -220,7 +271,8 @@
         },
         "responses": {
           "200": { "description": "OK" },
-          "401": { "description": "Invalid credentials" }
+          "401": { "description": "Invalid credentials" },
+          "429": { "description": "Too many login attempts" }
         }
       }
     },
@@ -348,6 +400,89 @@
         ],
         "responses": {
           "200": { "description": "OK" }
+        }
+      }
+    },
+    "/api/admin/salons": {
+      "get": {
+        "summary": "List salons (admin)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean", "default": false }
+          }
+        ],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      },
+      "post": {
+        "summary": "Create salon",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["code", "name", "address", "workHours"],
+                "properties": {
+                  "code": { "type": "string", "example": "centr-bishkek" },
+                  "name": { "type": "string", "example": "HairLine Center" },
+                  "address": { "type": "string", "example": "пр. Чуй, 150" },
+                  "workHours": { "type": "string", "example": "09:00 - 21:00" },
+                  "latitude": { "type": "number", "nullable": true },
+                  "longitude": { "type": "number", "nullable": true },
+                  "sortOrder": { "type": "integer", "default": 100 },
+                  "isActive": { "type": "boolean", "default": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created" },
+          "409": { "description": "Salon already exists" }
+        }
+      }
+    },
+    "/api/admin/salons/{id}": {
+      "patch": {
+        "summary": "Update salon",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "address": { "type": "string" },
+                  "workHours": { "type": "string" },
+                  "latitude": { "type": "number", "nullable": true },
+                  "longitude": { "type": "number", "nullable": true },
+                  "sortOrder": { "type": "integer" },
+                  "isActive": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated" },
+          "404": { "description": "Not found" }
         }
       }
     }

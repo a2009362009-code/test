@@ -1,3 +1,17 @@
+CREATE TABLE IF NOT EXISTS salons (
+  id SERIAL PRIMARY KEY,
+  code TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL UNIQUE,
+  address TEXT NOT NULL,
+  work_hours TEXT NOT NULL,
+  latitude NUMERIC(9,6),
+  longitude NUMERIC(9,6),
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order INT NOT NULL DEFAULT 100,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS barbers (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
@@ -10,6 +24,7 @@ CREATE TABLE IF NOT EXISTS barbers (
   specialties TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
   location TEXT,
   bio TEXT,
+  salon_id INT REFERENCES salons(id),
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -23,6 +38,21 @@ ALTER TABLE barbers ADD COLUMN IF NOT EXISTS is_available BOOLEAN NOT NULL DEFAU
 ALTER TABLE barbers ADD COLUMN IF NOT EXISTS specialties TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];
 ALTER TABLE barbers ADD COLUMN IF NOT EXISTS location TEXT;
 ALTER TABLE barbers ADD COLUMN IF NOT EXISTS bio TEXT;
+ALTER TABLE barbers ADD COLUMN IF NOT EXISTS salon_id INT;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.table_constraints
+    WHERE constraint_name = 'barbers_salon_id_fkey'
+      AND table_name = 'barbers'
+  ) THEN
+    ALTER TABLE barbers
+      ADD CONSTRAINT barbers_salon_id_fkey
+      FOREIGN KEY (salon_id) REFERENCES salons(id);
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS services (
   id SERIAL PRIMARY KEY,
@@ -57,10 +87,13 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX IF NOT EXISTS users_email_idx ON users(email);
 CREATE UNIQUE INDEX IF NOT EXISTS barbers_name_uidx ON barbers(name);
+CREATE INDEX IF NOT EXISTS barbers_salon_idx ON barbers(salon_id);
 CREATE UNIQUE INDEX IF NOT EXISTS services_name_uidx ON services(name);
 CREATE UNIQUE INDEX IF NOT EXISTS products_name_uidx ON products(name);
 CREATE INDEX IF NOT EXISTS products_category_idx ON products(category);
 CREATE INDEX IF NOT EXISTS products_active_idx ON products(is_active);
+CREATE INDEX IF NOT EXISTS salons_active_idx ON salons(is_active);
+CREATE INDEX IF NOT EXISTS salons_sort_order_idx ON salons(sort_order);
 
 CREATE TABLE IF NOT EXISTS slots (
   id SERIAL PRIMARY KEY,
@@ -88,4 +121,5 @@ CREATE TABLE IF NOT EXISTS bookings (
 CREATE INDEX IF NOT EXISTS bookings_date_idx ON bookings(date);
 CREATE INDEX IF NOT EXISTS bookings_barber_idx ON bookings(barber_id);
 CREATE INDEX IF NOT EXISTS bookings_user_idx ON bookings(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS bookings_slot_uidx ON bookings(slot_id);
 CREATE INDEX IF NOT EXISTS slots_date_idx ON slots(date);

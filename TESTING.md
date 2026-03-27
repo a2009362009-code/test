@@ -1,30 +1,31 @@
-**Barbershop Booking API — Test Guide**
+**Barbershop Booking API - Test Guide**
 
 **Base URL**
-`https://barbershop-booking-api.onrender.com`
+`https://test-4p5l.onrender.com`
 
 **Preconditions**
-1. The service is deployed and `/api/health` responds `200`.
+1. The service is deployed and `/api/health` + `/api/ready` respond `200`.
 2. Database has at least 1 barber and 1 service.
 If `/api/barbers` or `/api/services` returns an empty array, ask the developer to seed demo data.
-3. Admin credentials are available in Render env vars: `ADMIN_USER`, `ADMIN_PASSWORD`, `JWT_SECRET`.
+3. Admin credentials are configured in Render env vars: `ADMIN_USER`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`.
 
 **Formats**
 1. Date: `YYYY-MM-DD`
 2. Time: `HH:MM` (24h)
-3. Phone: 7–20 characters, digits and `+() -` allowed
+3. Phone: 7-20 characters, digits and `+() -` allowed
 
 **Smoke Test**
 ```bash
-curl -i https://barbershop-booking-api.onrender.com/api/health
-curl -i https://barbershop-booking-api.onrender.com/api/barbers
-curl -i https://barbershop-booking-api.onrender.com/api/services
+curl -i https://test-4p5l.onrender.com/api/health
+curl -i https://test-4p5l.onrender.com/api/ready
+curl -i https://test-4p5l.onrender.com/api/barbers
+curl -i https://test-4p5l.onrender.com/api/services
 ```
 
 **User Auth**
 1. Register user
 ```bash
-curl -i -X POST https://barbershop-booking-api.onrender.com/api/auth/register \
+curl -i -X POST https://test-4p5l.onrender.com/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "fullName": "Test User",
@@ -37,7 +38,7 @@ Expected: `201` with user object.
 
 2. Login user
 ```bash
-curl -i -X POST https://barbershop-booking-api.onrender.com/api/auth/login \
+curl -i -X POST https://test-4p5l.onrender.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test.user+1@example.com",
@@ -48,7 +49,7 @@ Expected: `200` with `token`. Save as `USER_TOKEN`.
 
 **Admin Auth**
 ```bash
-curl -i -X POST https://barbershop-booking-api.onrender.com/api/admin/login \
+curl -i -X POST https://test-4p5l.onrender.com/api/admin/login \
   -H "Content-Type: application/json" \
   -d '{
     "username": "<ADMIN_USER>",
@@ -59,7 +60,7 @@ Expected: `200` with `token`. Save as `ADMIN_TOKEN`.
 
 **Create Slots (Admin)**
 ```bash
-curl -i -X POST https://barbershop-booking-api.onrender.com/api/admin/slots \
+curl -i -X POST https://test-4p5l.onrender.com/api/admin/slots \
   -H "Authorization: Bearer <ADMIN_TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -73,13 +74,13 @@ Expected: `201` with `created` and `skipped`.
 
 **Check Available Slots (Public)**
 ```bash
-curl -i "https://barbershop-booking-api.onrender.com/api/slots?date=2026-03-20&barberId=1"
+curl -i "https://test-4p5l.onrender.com/api/slots?date=2026-03-20&barberId=1&status=available"
 ```
 Expected: `200` with available slots.
 
 **Create Booking (User)**
 ```bash
-curl -i -X POST https://barbershop-booking-api.onrender.com/api/bookings \
+curl -i -X POST https://test-4p5l.onrender.com/api/bookings \
   -H "Authorization: Bearer <USER_TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -93,27 +94,27 @@ Expected: `201` with booking `id` and `createdAt`.
 
 **Verify Slot Is Gone**
 ```bash
-curl -i "https://barbershop-booking-api.onrender.com/api/slots?date=2026-03-20&barberId=1"
+curl -i "https://test-4p5l.onrender.com/api/slots?date=2026-03-20&barberId=1"
 ```
 Expected: booked time is not present.
 
 **List Bookings (Admin)**
 ```bash
-curl -i "https://barbershop-booking-api.onrender.com/api/admin/bookings?date=2026-03-20&barberId=1" \
+curl -i "https://test-4p5l.onrender.com/api/admin/bookings?date=2026-03-20&barberId=1" \
   -H "Authorization: Bearer <ADMIN_TOKEN>"
 ```
 Expected: list with service and barber names.
 
 **Delete Booking (Admin)**
 ```bash
-curl -i -X DELETE https://barbershop-booking-api.onrender.com/api/admin/bookings/<BOOKING_ID> \
+curl -i -X DELETE https://test-4p5l.onrender.com/api/admin/bookings/<BOOKING_ID> \
   -H "Authorization: Bearer <ADMIN_TOKEN>"
 ```
 Expected: `200 {"status":"deleted"}` and the slot becomes `available` again.
 
 **Delete Slot (Admin)**
 ```bash
-curl -i -X DELETE https://barbershop-booking-api.onrender.com/api/admin/slots/<SLOT_ID> \
+curl -i -X DELETE https://test-4p5l.onrender.com/api/admin/slots/<SLOT_ID> \
   -H "Authorization: Bearer <ADMIN_TOKEN>"
 ```
 Expected: `200 {"status":"deleted"}` unless slot is booked, then `409`.
@@ -125,14 +126,16 @@ Expected: `200 {"status":"deleted"}` unless slot is booked, then `409`.
 4. Duplicate register (email/phone) returns `409`.
 5. Booking an occupied slot returns `409`.
 6. Deleting nonexistent booking/slot returns `404`.
+7. Too many login attempts return `429` for `/api/auth/login` and `/api/admin/login`.
 
 **PowerShell Commands (Windows)**
 
 Smoke:
 ```powershell
-Invoke-RestMethod https://barbershop-booking-api.onrender.com/api/health
-Invoke-RestMethod https://barbershop-booking-api.onrender.com/api/barbers
-Invoke-RestMethod https://barbershop-booking-api.onrender.com/api/services
+Invoke-RestMethod https://test-4p5l.onrender.com/api/health
+Invoke-RestMethod https://test-4p5l.onrender.com/api/ready
+Invoke-RestMethod https://test-4p5l.onrender.com/api/barbers
+Invoke-RestMethod https://test-4p5l.onrender.com/api/services
 ```
 
 Register user:
@@ -145,7 +148,7 @@ $body = @{
 } | ConvertTo-Json
 
 Invoke-RestMethod -Method Post `
-  -Uri https://barbershop-booking-api.onrender.com/api/auth/register `
+  -Uri https://test-4p5l.onrender.com/api/auth/register `
   -ContentType "application/json" `
   -Body $body
 ```
@@ -158,7 +161,7 @@ $body = @{
 } | ConvertTo-Json
 
 $login = Invoke-RestMethod -Method Post `
-  -Uri https://barbershop-booking-api.onrender.com/api/auth/login `
+  -Uri https://test-4p5l.onrender.com/api/auth/login `
   -ContentType "application/json" `
   -Body $body
 
@@ -173,7 +176,7 @@ $body = @{
 } | ConvertTo-Json
 
 $adminLogin = Invoke-RestMethod -Method Post `
-  -Uri https://barbershop-booking-api.onrender.com/api/admin/login `
+  -Uri https://test-4p5l.onrender.com/api/admin/login `
   -ContentType "application/json" `
   -Body $body
 
@@ -190,7 +193,7 @@ $body = @{
 } | ConvertTo-Json
 
 Invoke-RestMethod -Method Post `
-  -Uri https://barbershop-booking-api.onrender.com/api/admin/slots `
+  -Uri https://test-4p5l.onrender.com/api/admin/slots `
   -Headers @{ Authorization = "Bearer $ADMIN_TOKEN" } `
   -ContentType "application/json" `
   -Body $body
@@ -198,7 +201,7 @@ Invoke-RestMethod -Method Post `
 
 Check slots (public):
 ```powershell
-Invoke-RestMethod "https://barbershop-booking-api.onrender.com/api/slots?date=2026-03-20&barberId=1"
+Invoke-RestMethod "https://test-4p5l.onrender.com/api/slots?date=2026-03-20&barberId=1"
 ```
 
 Create booking (user):
@@ -211,7 +214,7 @@ $body = @{
 } | ConvertTo-Json
 
 $booking = Invoke-RestMethod -Method Post `
-  -Uri https://barbershop-booking-api.onrender.com/api/bookings `
+  -Uri https://test-4p5l.onrender.com/api/bookings `
   -Headers @{ Authorization = "Bearer $USER_TOKEN" } `
   -ContentType "application/json" `
   -Body $body
@@ -222,14 +225,14 @@ $BOOKING_ID = $booking.id
 List bookings (admin):
 ```powershell
 Invoke-RestMethod `
-  -Uri "https://barbershop-booking-api.onrender.com/api/admin/bookings?date=2026-03-20&barberId=1" `
+  -Uri "https://test-4p5l.onrender.com/api/admin/bookings?date=2026-03-20&barberId=1" `
   -Headers @{ Authorization = "Bearer $ADMIN_TOKEN" }
 ```
 
 Delete booking (admin):
 ```powershell
 Invoke-RestMethod -Method Delete `
-  -Uri "https://barbershop-booking-api.onrender.com/api/admin/bookings/$BOOKING_ID" `
+  -Uri "https://test-4p5l.onrender.com/api/admin/bookings/$BOOKING_ID" `
   -Headers @{ Authorization = "Bearer $ADMIN_TOKEN" }
 ```
 
@@ -237,6 +240,7 @@ Delete slot (admin):
 ```powershell
 $SLOT_ID = 1 # replace with a real slot id
 Invoke-RestMethod -Method Delete `
-  -Uri "https://barbershop-booking-api.onrender.com/api/admin/slots/$SLOT_ID" `
+  -Uri "https://test-4p5l.onrender.com/api/admin/slots/$SLOT_ID" `
   -Headers @{ Authorization = "Bearer $ADMIN_TOKEN" }
 ```
+
