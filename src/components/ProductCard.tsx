@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import type { Product } from "@/data/products";
 import { useI18n } from "@/lib/i18n";
+import AddToCartButton from "@/components/AddToCartButton";
 
 const ProductCard = ({ product }: { product: Product }) => {
   const { tr, tv, price } = useI18n();
@@ -24,9 +25,10 @@ const ProductCard = ({ product }: { product: Product }) => {
         <h3 className="mt-1 text-sm font-semibold tracking-tight">{product.name}</h3>
         <div className="mt-3 flex items-center justify-between">
           <span className="tabular text-sm font-semibold">{price(product.price)}</span>
-          <button className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground opacity-0 transition-all duration-200 group-hover:opacity-100 hover:bg-primary/90 active:scale-95">
-            {tr("products.addtocart")}
-          </button>
+          <AddToCartButton
+            product={product}
+            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground opacity-0 transition-all duration-200 group-hover:opacity-100 hover:bg-primary/90 active:scale-95"
+          />
         </div>
       </div>
     </motion.div>

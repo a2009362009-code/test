@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Clock3, MapPin, Scissors, UserRound, XCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -14,7 +13,7 @@ function parseDate(value: string) {
 }
 
 const ProfileOrders = () => {
-  const { token, isAuthenticated } = useAuth();
+  const { token } = useAuth();
   const { tr, formatDate } = useI18n();
   const queryClient = useQueryClient();
 
@@ -44,53 +43,30 @@ const ProfileOrders = () => {
     },
   });
 
-  if (!isAuthenticated || !token) {
-    return (
-      <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl items-center justify-center px-6 py-12">
-        <div className="w-full rounded-2xl bg-card p-8 text-center card-shadow">
-          <h1 className="text-2xl font-semibold">{tr("profile.orders.title")}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{tr("profile.guest.desc")}</p>
-          <Link
-            to="/auth?redirect=%2Fprofile%2Forders"
-            className="mt-6 inline-flex rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
-          >
-            {tr("auth.submit.login")}
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
-      <div className="flex items-center justify-between gap-3">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold">{tr("profile.orders.title")}</h1>
           <p className="mt-1 text-muted-foreground">{tr("profile.orders.subtitle")}</p>
         </div>
-        <Link
-          to="/profile"
-          className="inline-flex rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
-        >
-          {tr("profile.back")}
-        </Link>
       </div>
 
       {bookingsQuery.isLoading && (
-        <p className="mt-8 text-sm text-muted-foreground">{tr("profile.orders.loading")}</p>
+        <p className="text-sm text-muted-foreground">{tr("profile.orders.loading")}</p>
       )}
 
       {bookingsQuery.isError && (
-        <p className="mt-8 text-sm text-destructive">{tr("profile.orders.error")}</p>
+        <p className="text-sm text-destructive">{tr("profile.orders.error")}</p>
       )}
 
       {!bookingsQuery.isLoading && !bookingsQuery.isError && bookingsQuery.data?.length === 0 && (
-        <div className="mt-8 rounded-2xl bg-card p-6 card-shadow">
+        <div className="rounded-2xl bg-card p-6 card-shadow">
           <p className="text-sm text-muted-foreground">{tr("profile.orders.empty")}</p>
         </div>
       )}
 
-      <div className="mt-8 space-y-4">
+      <div className="space-y-4">
         {bookingsQuery.data?.map((booking) => {
           const bookingDate = parseDate(booking.date);
           return (

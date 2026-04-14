@@ -6,15 +6,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider } from "@/lib/auth";
+import { CartProvider } from "@/lib/cart";
 import Layout from "@/components/Layout";
 
 const Index = lazy(() => import("./pages/Index"));
 const Masters = lazy(() => import("./pages/Masters"));
 const MasterDetail = lazy(() => import("./pages/MasterDetail"));
 const Shop = lazy(() => import("./pages/Shop"));
+const Cart = lazy(() => import("./pages/Cart"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Profile = lazy(() => import("./pages/Profile"));
+const ProfileInfo = lazy(() => import("./pages/ProfileInfo"));
 const ProfileOrders = lazy(() => import("./pages/ProfileOrders"));
+const ProfileRecords = lazy(() => import("./pages/ProfileRecords"));
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -28,27 +32,33 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <I18nProvider>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Suspense fallback={<RouteLoader />}>
-              <Routes>
-                <Route element={<Layout />}>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/masters" element={<Masters />} />
-                  <Route path="/masters/:id" element={<MasterDetail />} />
-                  <Route path="/shop" element={<Shop />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/profile/orders" element={<ProfileOrders />} />
-                  <Route path="/profile/settings" element={<ProfileSettings />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
+        <CartProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Suspense fallback={<RouteLoader />}>
+                <Routes>
+                  <Route element={<Layout />}>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/masters" element={<Masters />} />
+                    <Route path="/masters/:id" element={<MasterDetail />} />
+                    <Route path="/shop" element={<Shop />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/profile" element={<Profile />}>
+                      <Route index element={<ProfileInfo />} />
+                      <Route path="orders" element={<ProfileOrders />} />
+                      <Route path="records" element={<ProfileRecords />} />
+                      <Route path="settings" element={<ProfileSettings />} />
+                    </Route>
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </CartProvider>
       </AuthProvider>
     </I18nProvider>
   </QueryClientProvider>

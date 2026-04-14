@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -8,7 +7,7 @@ import { ApiError, api } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 
 const ProfileSettings = () => {
-  const { user, token, isAuthenticated, syncUser } = useAuth();
+  const { user, token, syncUser } = useAuth();
   const { tr } = useI18n();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -77,40 +76,21 @@ const ProfileSettings = () => {
     },
   });
 
-  if (!isAuthenticated || !user || !token) {
-    return (
-      <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl items-center justify-center px-6 py-12">
-        <div className="w-full rounded-2xl bg-card p-8 text-center card-shadow">
-          <h1 className="text-2xl font-semibold">{tr("profile.settings.title")}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{tr("profile.guest.desc")}</p>
-          <Link
-            to="/auth?redirect=%2Fprofile%2Fsettings"
-            className="mt-6 inline-flex rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
-          >
-            {tr("auth.submit.login")}
-          </Link>
-        </div>
-      </div>
-    );
+  if (!user || !token) {
+    return null;
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
-      <div className="flex items-center justify-between gap-3">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold">{tr("profile.settings.title")}</h1>
           <p className="mt-1 text-muted-foreground">{tr("profile.settings.subtitle")}</p>
         </div>
-        <Link
-          to="/profile"
-          className="inline-flex rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
-        >
-          {tr("profile.back")}
-        </Link>
       </div>
 
       <form
-        className="mt-8 space-y-4 rounded-2xl bg-card p-6 card-shadow"
+        className="space-y-4 rounded-2xl bg-card p-6 card-shadow"
         onSubmit={(event) => {
           event.preventDefault();
           if (hasChanges) {

@@ -1,17 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, ShoppingCart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [badgePulse, setBadgePulse] = useState(false);
   const location = useLocation();
   const { tr } = useI18n();
   const { isAuthenticated, logout } = useAuth();
+  const { totalItems } = useCart();
+  const previousTotal = useRef(totalItems);
 
   const navLinks = [
     { to: "/", label: tr("nav.home") },
@@ -24,6 +28,22 @@ const Navbar = () => {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    let timeout: number | undefined;
+
+    if (totalItems > previousTotal.current) {
+      setBadgePulse(true);
+      timeout = window.setTimeout(() => setBadgePulse(false), 250);
+    }
+
+    previousTotal.current = totalItems;
+    return () => {
+      if (timeout) {
+        window.clearTimeout(timeout);
+      }
+    };
+  }, [totalItems]);
 
   useEffect(() => setMobileOpen(false), [location]);
 
@@ -55,6 +75,23 @@ const Navbar = () => {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
+          <Link
+            to="/cart"
+            className="relative inline-flex items-center justify-center rounded-full bg-secondary/80 p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <motion.span
+              animate={badgePulse ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+              transition={{ duration: 0.25 }}
+              className="relative"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {totalItems > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 text-[0.65rem] font-semibold text-destructive-foreground">
+                  {totalItems}
+                </span>
+              )}
+            </motion.span>
+          </Link>
           <LanguageSwitcher />
           {isAuthenticated ? (
             <>
@@ -84,6 +121,17 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
+          <Link
+            to="/cart"
+            className="relative inline-flex items-center justify-center rounded-full bg-secondary/80 p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {totalItems > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 text-[0.65rem] font-semibold text-destructive-foreground">
+                {totalItems}
+              </span>
+            )}
+          </Link>
           <LanguageSwitcher />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}

@@ -460,6 +460,26 @@ const mockApi = {
       };
     });
   },
+  getMyReviews: async (token: string): Promise<ApiReview[]> => {
+    await wait();
+    const userId = fromMockToken(token);
+    if (!userId) {
+      throw new ApiError("Invalid token", 401);
+    }
+
+    ensureMockReviewsSeeded();
+    return loadMockReviews()
+      .filter((review) => review.userId === userId)
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+      .map((review) => ({
+        id: review.id,
+        barber_id: review.barberId,
+        author_name: review.authorName,
+        rating: review.rating,
+        comment: review.comment,
+        created_at: review.createdAt,
+      }));
+  },
   cancelBooking: async (token: string, bookingId: number): Promise<{ status: string }> => {
     await wait();
     const userId = fromMockToken(token);
@@ -727,6 +747,13 @@ const realApi = {
           Authorization: `Bearer ${token}`,
         },
       });
+    } catch (error) {
+      return toApiError(error);
+    }
+  },
+  getMyReviews: async (token: string): Promise<ApiReview[]> => {
+    try {
+      return [];
     } catch (error) {
       return toApiError(error);
     }
