@@ -13,7 +13,7 @@ const Navbar = () => {
   const [badgePulse, setBadgePulse] = useState(false);
   const location = useLocation();
   const { tr } = useI18n();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { totalItems } = useCart();
   const previousTotal = useRef(totalItems);
 
@@ -82,6 +82,7 @@ const Navbar = () => {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
+          <LanguageSwitcher />
           <Link
             to="/cart"
             className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-secondary/80 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
@@ -99,23 +100,14 @@ const Navbar = () => {
               )}
             </motion.span>
           </Link>
-          <LanguageSwitcher />
           {isAuthenticated ? (
-            <>
-              <Link
-                to="/profile"
-                className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
-              >
-                <User className="h-4 w-4" />
-                {tr("nav.profile")}
-              </Link>
-              <button
-                onClick={logout}
-                className="inline-flex h-9 items-center rounded-lg bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
-              >
-                {tr("nav.logout")}
-              </button>
-            </>
+            <Link
+              to="/profile"
+              className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
+            >
+              <User className="h-4 w-4" />
+              {tr("nav.profile")}
+            </Link>
           ) : (
             <Link
               to="/auth"
@@ -128,6 +120,7 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher />
           <Link
             to="/cart"
             className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-secondary/80 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
@@ -139,7 +132,6 @@ const Navbar = () => {
               </span>
             )}
           </Link>
-          <LanguageSwitcher />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-secondary/80 text-foreground transition-colors hover:bg-secondary"
@@ -174,21 +166,13 @@ const Navbar = () => {
                   </Link>
                 ))}
                 {isAuthenticated ? (
-                  <>
-                    <Link
-                      to="/profile"
-                      className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
-                    >
-                      <User className="h-4 w-4" />
-                      {tr("nav.profile")}
-                    </Link>
-                    <button
-                      onClick={logout}
-                      className="mt-2 w-full rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground"
-                    >
-                      {tr("nav.logout")}
-                    </button>
-                  </>
+                  <Link
+                    to="/profile"
+                    className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
+                  >
+                    <User className="h-4 w-4" />
+                    {tr("nav.profile")}
+                  </Link>
                 ) : (
                   <Link
                     to="/auth"

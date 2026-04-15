@@ -13,6 +13,7 @@ const {
   registerSchema,
   userLoginSchema,
   userProfileUpdateSchema,
+  userPasswordUpdateSchema,
   reviewCreateSchema,
   normalizeRegisterPayload,
   normalizeUserLoginPayload,
@@ -632,6 +633,44 @@ router.patch('/users/me', requireAuth, requireRole('user'), async (req, res, nex
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Email or phone already in use' });
     }
+    next(err);
+  }
+});
+
+router.patch('/users/me/password', requireAuth, requireRole('user'), async (req, res, next) => {
+  const userId = Number(req.user.sub);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(401).json({ error: 'Invalid token subject' });
+  }
+
+  const { data, error } = validate(userPasswordUpdateSchema, req.body);
+  if (error) {
+    return res.status(400).json({ error: 'Invalid payload', details: error.fieldErrors });
+  }
+
+  try {
+    const userRes = await pool.query(
+      'SELECT id, password_hash FROM users WHERE id = $1',
+      [userId]
+    );
+    if (!userRes.rowCount) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    const user = userRes.rows[0];
+    const validCurrentPassword = await bcrypt.compare(data.currentPassword, user.password_hash);
+    if (!validCurrentPassword) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    const nextPasswordHash = await bcrypt.hash(data.newPassword, 10);
+    await pool.query(
+      'UPDATE users SET password_hash = $1 WHERE id = $2',
+      [nextPasswordHash, user.id]
+    );
+
+    res.json({ status: 'password_updated' });
+  } catch (err) {
     next(err);
   }
 });

@@ -366,6 +366,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update current user password */
+        patch: operations["updateMyPassword"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -592,6 +609,14 @@ export interface components {
             created_at: string;
             /** Format: date-time */
             updated_at: string;
+        };
+        UserPasswordUpdateRequest: {
+            currentPassword: string;
+            newPassword: string;
+        };
+        UserPasswordUpdateResponse: {
+            /** @enum {string} */
+            status: "password_updated";
         };
     };
     responses: never;
@@ -892,7 +917,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Slot not available */
+            /** @description Conflict: slot is unavailable or active booking limit is reached */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -1430,6 +1455,48 @@ export interface operations {
             };
             /** @description Email or phone already in use */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateMyPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserPasswordUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Password updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPasswordUpdateResponse"];
+                };
+            };
+            /** @description Invalid payload or current password */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid token */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

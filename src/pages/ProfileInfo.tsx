@@ -14,11 +14,7 @@ const ProfileInfo = () => {
   return (
     <div className="space-y-5">
       <div className="surface-card p-5 card-shadow sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-muted-foreground">{tr("profile.info.title")}</p>
-            <h2 className="mt-1 text-xl font-semibold sm:text-2xl">{tr("profile.info.subtitle")}</h2>
-          </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <div className="grid gap-2 sm:grid-cols-2">
             <Link
               to="/profile/orders"

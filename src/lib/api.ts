@@ -42,6 +42,8 @@ type LoginRequest = components["schemas"]["UserLoginRequest"];
 type BookingRequest = components["schemas"]["BookingRequest"];
 type ReviewCreateRequest = components["schemas"]["ReviewCreateRequest"];
 type ReviewCreateResponse = components["schemas"]["ReviewCreateResponse"];
+type UserPasswordUpdateRequest = components["schemas"]["UserPasswordUpdateRequest"];
+type UserPasswordUpdateResponse = components["schemas"]["UserPasswordUpdateResponse"];
 type UpdateProfileRequest = {
   fullName?: string;
   email?: string;
@@ -573,6 +575,34 @@ const mockApi = {
       },
     };
   },
+  updatePassword: async (
+    token: string,
+    body: UserPasswordUpdateRequest,
+  ): Promise<UserPasswordUpdateResponse> => {
+    await wait();
+    const userId = fromMockToken(token);
+    if (!userId) {
+      throw new ApiError("Invalid token", 401);
+    }
+
+    if (!body.currentPassword?.trim() || (body.newPassword?.length ?? 0) < 6) {
+      throw new ApiError("Invalid payload", 400);
+    }
+
+    const users = loadMockUsers();
+    const target = users.find((user) => user.id === userId);
+    if (!target) {
+      throw new ApiError("User not found", 401);
+    }
+    if (target.password !== body.currentPassword) {
+      throw new ApiError("Current password is incorrect", 400);
+    }
+
+    target.password = body.newPassword;
+    saveMockUsers(users);
+
+    return { status: "password_updated" };
+  },
   getBarberReviews: async (barberId: number): Promise<ApiReview[]> => {
     await wait();
     ensureMockReviewsSeeded();
@@ -803,6 +833,22 @@ const realApi = {
   ): Promise<ApiUserProfileResponse> => {
     try {
       return await requestJson<ApiUserProfileResponse>("/api/users/me", {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+    } catch (error) {
+      return toApiError(error);
+    }
+  },
+  updatePassword: async (
+    token: string,
+    body: UserPasswordUpdateRequest,
+  ): Promise<UserPasswordUpdateResponse> => {
+    try {
+      return await requestJson<UserPasswordUpdateResponse>("/api/users/me/password", {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,

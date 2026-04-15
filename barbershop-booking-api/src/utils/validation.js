@@ -124,6 +124,11 @@ const userProfileUpdateSchema = z
     message: 'At least one field is required'
   });
 
+const userPasswordUpdateSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6)
+});
+
 const slotCreateSchema = z.object({
   barberId: z.coerce.number().int().positive(),
   date: dateStringSchema,
@@ -213,6 +218,7 @@ module.exports = {
   registerSchema,
   userLoginSchema,
   userProfileUpdateSchema,
+  userPasswordUpdateSchema,
   slotCreateSchema,
   slotQuerySchema,
   bookingsQuerySchema,

@@ -823,6 +823,37 @@
           "created_at",
           "updated_at"
         ]
+      },
+      "UserPasswordUpdateRequest": {
+        "type": "object",
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ],
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 6
+          }
+        }
+      },
+      "UserPasswordUpdateResponse": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "password_updated"
+            ]
+          }
+        }
       }
     }
   },
@@ -1977,6 +2008,59 @@
                   "items": {
                     "$ref": "#/components/schemas/Salon"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/me/password": {
+      "patch": {
+        "summary": "Update current user password",
+        "operationId": "updateMyPassword",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPasswordUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPasswordUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload or current password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }

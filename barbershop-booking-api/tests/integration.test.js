@@ -32,6 +32,7 @@ const slotTimes = randomTimes(4);
 const email = `integration-${Date.now()}@example.com`;
 const phone = `+996700${String(Date.now()).slice(-6)}`;
 const password = 'password123';
+const updatedPassword = 'password456';
 
 let userToken = '';
 let adminToken = '';
@@ -204,6 +205,61 @@ test('enforces max active bookings per user and allows booking after cancel', as
     .set('Authorization', `Bearer ${userToken}`);
 
   assert.equal(cancelSecondBookingResponse.statusCode, 200);
+});
+
+test('user can change password and login with new credentials', async (t) => {
+  if (skipIfDbUnavailable(t)) return;
+
+  const loginWithCurrentPasswordResponse = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password });
+
+  assert.equal(loginWithCurrentPasswordResponse.statusCode, 200);
+
+  const wrongCurrentPasswordResponse = await request(app)
+    .patch('/api/users/me/password')
+    .set('Authorization', `Bearer ${userToken}`)
+    .send({
+      currentPassword: 'wrong-password',
+      newPassword: updatedPassword
+    });
+
+  assert.equal(wrongCurrentPasswordResponse.statusCode, 400);
+
+  const shortPasswordResponse = await request(app)
+    .patch('/api/users/me/password')
+    .set('Authorization', `Bearer ${userToken}`)
+    .send({
+      currentPassword: password,
+      newPassword: '123'
+    });
+
+  assert.equal(shortPasswordResponse.statusCode, 400);
+
+  const passwordChangeResponse = await request(app)
+    .patch('/api/users/me/password')
+    .set('Authorization', `Bearer ${userToken}`)
+    .send({
+      currentPassword: password,
+      newPassword: updatedPassword
+    });
+
+  assert.equal(passwordChangeResponse.statusCode, 200);
+  assert.equal(passwordChangeResponse.body.status, 'password_updated');
+
+  const loginWithOldPasswordResponse = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password });
+
+  assert.equal(loginWithOldPasswordResponse.statusCode, 401);
+
+  const loginWithNewPasswordResponse = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: updatedPassword });
+
+  assert.equal(loginWithNewPasswordResponse.statusCode, 200);
+  assert.ok(loginWithNewPasswordResponse.body.token);
+  userToken = loginWithNewPasswordResponse.body.token;
 });
 
 test('user can create and update own barber review', async (t) => {
