@@ -48,63 +48,71 @@ const Masters = () => {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12">
+    <div className="page-shell page-section">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.35 }}
       >
-        <h1 className="text-3xl font-semibold">{tr("masters.page.title")}</h1>
-        <p className="mt-2 text-muted-foreground">{tr("masters.page.subtitle")}</p>
+        <h1 className="section-title">{tr("masters.page.title")}</h1>
+        <p className="section-subtitle">{tr("masters.page.subtitle")}</p>
       </motion.div>
 
-      <div className="mt-8 flex flex-wrap gap-6">
-        <div className="flex flex-wrap gap-2">
-          <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">
+      <div className="mt-6 space-y-3">
+        <div className="surface-card p-3 sm:p-4">
+          <p className="mb-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
             {tr("masters.specialty")}
-          </span>
-          {filters.map((filter) => (
-            <button
-              key={filter.key}
-              onClick={() => setActiveFilter(filter.value)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
-                activeFilter === filter.value
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
+          </p>
+          <div className="chip-row">
+            {filters.map((filter) => (
+              <button
+                key={filter.key}
+                onClick={() => setActiveFilter(filter.value)}
+                className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                  activeFilter === filter.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/75"
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <span className="mr-1 self-center text-xs text-muted-foreground uppercase tracking-wider">
+
+        <div className="surface-card p-3 sm:p-4">
+          <p className="mb-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
             {tr("masters.location")}
-          </span>
-          {salonFilters.map((salonFilter) => (
-            <button
-              key={salonFilter.key}
-              onClick={() => setActiveSalon(salonFilter.value)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
-                activeSalon === salonFilter.value
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
-              }`}
-            >
-              {salonFilter.label}
-            </button>
-          ))}
+          </p>
+          <div className="chip-row">
+            {salonFilters.map((salonFilter) => (
+              <button
+                key={salonFilter.key}
+                onClick={() => setActiveSalon(salonFilter.value)}
+                className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                  activeSalon === salonFilter.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/75"
+                }`}
+              >
+                {salonFilter.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {isLoading && masters.length === 0 &&
           Array.from({ length: 8 }).map((_, index) => (
-            <div key={`masters-skeleton-${index}`} className="h-[360px] animate-pulse rounded-2xl bg-secondary/60" />
+            <div
+              key={`masters-skeleton-${index}`}
+              className="h-[360px] animate-pulse rounded-2xl bg-secondary/60"
+            />
           ))}
 
         {!isLoading && isError && (
-          <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+          <div className="surface-card col-span-full p-6 text-center">
             <p className="text-sm text-muted-foreground">Could not load masters.</p>
             <button
               className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
@@ -116,21 +124,23 @@ const Masters = () => {
         )}
 
         {!isLoading && !isError && filtered.length === 0 && (
-          <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+          <div className="surface-card col-span-full p-6 text-center">
             <p className="text-sm text-muted-foreground">{tr("masters.notfound")}</p>
           </div>
         )}
 
-        {!isLoading && !isError && filtered.map((master, index) => (
-          <motion.div
-            key={master.id}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.3 }}
-          >
-            <MasterCard master={master} />
-          </motion.div>
-        ))}
+        {!isLoading &&
+          !isError &&
+          filtered.map((master, index) => (
+            <motion.div
+              key={master.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.04, duration: 0.25 }}
+            >
+              <MasterCard master={master} />
+            </motion.div>
+          ))}
       </div>
     </div>
   );

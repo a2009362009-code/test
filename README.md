@@ -77,7 +77,8 @@ ADMIN_USER=admin_user
 ADMIN_PASSWORD=admin_password
 JWT_SECRET=12345678901234567890
 JWT_TTL=12h
-```
+MAX_ACTIVE_BOOKINGS_PER_USER=2
+``` 
 
 Then:
 
@@ -105,6 +106,7 @@ Set root `.env`:
 ```env
 VITE_API_BASE_URL=http://localhost:4000
 VITE_MOCK_MODE=false
+VITE_MAX_ACTIVE_BOOKINGS_PER_USER=2
 ```
 
 Then:

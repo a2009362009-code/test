@@ -95,6 +95,7 @@ export const enDictionary = {
   "booking.error.services": "Could not load services. Please try again.",
   "booking.error.slots": "Failed to load slots for the selected date.",
   "booking.error.create": "Failed to create booking.",
+  "booking.error.limitActive": "You already have 2 active bookings. Cancel one to create a new booking.",
   "booking.error.title": "Booking failed",
   "booking.noslots": "No available slots for this date.",
   "footer.desc": "Precision in every line. Premium service for modern style.",

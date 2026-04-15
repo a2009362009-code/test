@@ -95,6 +95,7 @@ export const kgDictionary = {
   "booking.error.services": "Кызматтарды жүктөө мүмкүн болбоду.",
   "booking.error.slots": "Тандалган күн үчүн убакыттарды жүктөө мүмкүн болбоду.",
   "booking.error.create": "Жазылууну түзүү мүмкүн болбоду.",
+  "booking.error.limitActive": "Лимитке жеттиңиз: максимум 2 активдүү жазылуу.",
   "booking.error.title": "Ката",
   "booking.noslots": "Бул күнгө бош убакыт жок.",
   "footer.desc": "Ар бир сызык так. Заманбап стиль үчүн премиум сервис.",

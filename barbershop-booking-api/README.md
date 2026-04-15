@@ -29,6 +29,7 @@ ADMIN_PASSWORD=admin_password
 
 JWT_SECRET=12345678901234567890
 JWT_TTL=12h
+MAX_ACTIVE_BOOKINGS_PER_USER=2
 
 AUTH_LOGIN_RATE_LIMIT_WINDOW_MS=900000
 AUTH_LOGIN_RATE_LIMIT_MAX=10
@@ -77,6 +78,7 @@ Use `/api/ready` for deploy checks.
 2. In production, `ADMIN_PASSWORD_HASH` is required.
 3. JWT rotation is supported via:
    `JWT_SECRETS` or `JWT_SECRET_CURRENT` + `JWT_SECRET_PREVIOUS`
+4. Booking limit is configurable via `MAX_ACTIVE_BOOKINGS_PER_USER` (default: `2`).
 
 ## Logging
 

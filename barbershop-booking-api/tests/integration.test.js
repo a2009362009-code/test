@@ -19,8 +19,16 @@ function randomTime() {
   return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
 
+function randomTimes(count) {
+  const result = new Set();
+  while (result.size < count) {
+    result.add(randomTime());
+  }
+  return Array.from(result);
+}
+
 const slotDate = '2099-12-31';
-const slotTime = randomTime();
+const slotTimes = randomTimes(4);
 const email = `integration-${Date.now()}@example.com`;
 const phone = `+996700${String(Date.now()).slice(-6)}`;
 const password = 'password123';
@@ -106,7 +114,7 @@ test('register, login and create booking flow', async (t) => {
     .send({
       barberId,
       date: slotDate,
-      times: [slotTime]
+      times: slotTimes
     });
 
   assert.equal(slotCreateResponse.statusCode, 201);
@@ -118,7 +126,7 @@ test('register, login and create booking flow', async (t) => {
       serviceId,
       barberId,
       date: slotDate,
-      time: slotTime
+      time: slotTimes[0]
     });
 
   assert.equal(bookingResponse.statusCode, 201);
@@ -132,10 +140,70 @@ test('register, login and create booking flow', async (t) => {
       serviceId,
       barberId,
       date: slotDate,
-      time: slotTime
+      time: slotTimes[0]
     });
 
   assert.equal(secondBookingResponse.statusCode, 409);
+});
+
+test('enforces max active bookings per user and allows booking after cancel', async (t) => {
+  if (skipIfDbUnavailable(t)) return;
+
+  const secondActiveBookingResponse = await request(app)
+    .post('/api/bookings')
+    .set('Authorization', `Bearer ${userToken}`)
+    .send({
+      serviceId,
+      barberId,
+      date: slotDate,
+      time: slotTimes[1]
+    });
+
+  assert.equal(secondActiveBookingResponse.statusCode, 201);
+  assert.ok(Number.isInteger(secondActiveBookingResponse.body.id));
+  const secondBookingId = secondActiveBookingResponse.body.id;
+
+  const limitExceededResponse = await request(app)
+    .post('/api/bookings')
+    .set('Authorization', `Bearer ${userToken}`)
+    .send({
+      serviceId,
+      barberId,
+      date: slotDate,
+      time: slotTimes[2]
+    });
+
+  assert.equal(limitExceededResponse.statusCode, 409);
+  assert.match(
+    limitExceededResponse.body.error,
+    /Maximum 2 active bookings per user reached/i
+  );
+
+  const cancelResponse = await request(app)
+    .delete(`/api/bookings/${bookingId}`)
+    .set('Authorization', `Bearer ${userToken}`);
+
+  assert.equal(cancelResponse.statusCode, 200);
+
+  const bookingAfterCancelResponse = await request(app)
+    .post('/api/bookings')
+    .set('Authorization', `Bearer ${userToken}`)
+    .send({
+      serviceId,
+      barberId,
+      date: slotDate,
+      time: slotTimes[2]
+    });
+
+  assert.equal(bookingAfterCancelResponse.statusCode, 201);
+  assert.ok(Number.isInteger(bookingAfterCancelResponse.body.id));
+  bookingId = bookingAfterCancelResponse.body.id;
+
+  const cancelSecondBookingResponse = await request(app)
+    .delete(`/api/bookings/${secondBookingId}`)
+    .set('Authorization', `Bearer ${userToken}`);
+
+  assert.equal(cancelSecondBookingResponse.statusCode, 200);
 });
 
 test('user can create and update own barber review', async (t) => {
@@ -252,16 +320,14 @@ test.after(async () => {
       await client.query('DELETE FROM reviews WHERE user_id = $1', [userId]);
     }
 
-    await client.query('DELETE FROM bookings WHERE date = $1 AND barber_id = $2 AND time = $3', [
-      slotDate,
-      barberId,
-      slotTime
-    ]);
-    await client.query('DELETE FROM slots WHERE date = $1 AND barber_id = $2 AND time = $3', [
-      slotDate,
-      barberId,
-      slotTime
-    ]);
+    await client.query(
+      'DELETE FROM bookings WHERE date = $1 AND barber_id = $2 AND time = ANY($3::time[])',
+      [slotDate, barberId, slotTimes]
+    );
+    await client.query(
+      'DELETE FROM slots WHERE date = $1 AND barber_id = $2 AND time = ANY($3::time[])',
+      [slotDate, barberId, slotTimes]
+    );
     await client.query('DELETE FROM users WHERE email = $1', [email]);
     await client.query('COMMIT');
   } catch (err) {

@@ -10,7 +10,7 @@ const ProductCard = ({ product }: { product: Product }) => {
     <motion.div
       whileHover={{ y: -2 }}
       transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-      className="group overflow-hidden rounded-2xl bg-card card-shadow transition-shadow duration-200 hover:card-shadow-hover"
+      className="group surface-card overflow-hidden card-shadow transition-shadow duration-200 hover:card-shadow-hover"
     >
       <div className="aspect-square overflow-hidden bg-secondary">
         <img
@@ -20,14 +20,14 @@ const ProductCard = ({ product }: { product: Product }) => {
           loading="lazy"
         />
       </div>
-      <div className="p-4">
+      <div className="p-4 sm:p-5">
         <p className="text-xs text-muted-foreground">{tv("productType", product.type)}</p>
-        <h3 className="mt-1 text-sm font-semibold tracking-tight">{product.name}</h3>
-        <div className="mt-3 flex items-center justify-between">
+        <h3 className="mt-1 line-clamp-2 text-sm font-semibold tracking-tight sm:min-h-[2.5rem]">{product.name}</h3>
+        <div className="mt-3 flex items-center justify-between gap-3">
           <span className="tabular text-sm font-semibold">{price(product.price)}</span>
           <AddToCartButton
             product={product}
-            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground opacity-0 transition-all duration-200 group-hover:opacity-100 hover:bg-primary/90 active:scale-95"
+            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground opacity-100 transition-all duration-200 hover:bg-primary/90 active:scale-95 sm:opacity-0 sm:group-hover:opacity-100"
           />
         </div>
       </div>

@@ -1,4 +1,4 @@
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Clock, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -9,7 +9,7 @@ import SalonsMap from "@/components/SalonsMap";
 import { useMasters } from "@/hooks/useMasters";
 import { useProducts } from "@/hooks/useProducts";
 import { useSalons } from "@/hooks/useSalons";
-import { useI18n, type Lang } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -20,34 +20,8 @@ const fadeUp = {
   }),
 };
 
-function formatSalonsCount(lang: Lang, count: number) {
-  if (lang === "en") {
-    return `${count} ${count === 1 ? "location" : "locations"}`;
-  }
-
-  if (lang === "ru") {
-    const abs = Math.abs(count);
-    const mod10 = abs % 10;
-    const mod100 = abs % 100;
-
-    if (mod10 === 1 && mod100 !== 11) return `${count} филиал`;
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-      return `${count} филиала`;
-    }
-    return `${count} филиалов`;
-  }
-
-  return `${count} филиал`;
-}
-
-function sectionTitleSalons(lang: Lang) {
-  if (lang === "en") return "Salons";
-  if (lang === "ru") return "Салоны";
-  return "Салондор";
-}
-
 const Index = () => {
-  const { tr, lang } = useI18n();
+  const { tr } = useI18n();
   const {
     masters,
     isLoading: mastersLoading,
@@ -68,23 +42,24 @@ const Index = () => {
   } = useSalons();
 
   const heroSalonsLabel = useMemo(
-    () => formatSalonsCount(lang, salons.length),
-    [lang, salons.length],
+    () => `${salons.length} ${tr("hero.locations").toLowerCase()}`,
+    [salons.length, tr],
   );
 
   return (
     <div>
-      <section className="relative flex min-h-[85vh] items-center overflow-hidden">
+      <section className="relative flex min-h-[72vh] items-center overflow-hidden sm:min-h-[85vh]">
         <div className="absolute inset-0">
           <img src={heroImage} alt="HairLine salon" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/20 sm:from-background sm:via-background/80 sm:to-transparent" />
         </div>
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-6">
-          <motion.div initial="hidden" animate="visible" className="max-w-xl">
+
+        <div className="page-shell relative z-10">
+          <motion.div initial="hidden" animate="visible" className="max-w-2xl py-8">
             <motion.p
               variants={fadeUp}
               custom={0}
-              className="text-sm font-medium tracking-widest uppercase text-muted-foreground"
+              className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground sm:text-sm"
             >
               {tr("hero.subtitle")}
             </motion.p>
@@ -98,29 +73,31 @@ const Index = () => {
             <motion.p
               variants={fadeUp}
               custom={2}
-              className="mt-4 text-lg leading-relaxed text-muted-foreground"
+              className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
             >
               {tr("hero.desc")}
             </motion.p>
-            <motion.div variants={fadeUp} custom={3} className="mt-8 flex flex-wrap gap-3">
+
+            <motion.div variants={fadeUp} custom={3} className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 to="/masters"
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.97]"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.97]"
               >
                 {tr("hero.book")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 to="/shop"
-                className="inline-flex items-center gap-2 rounded-lg bg-secondary px-6 py-3 text-sm font-medium text-secondary-foreground transition-all hover:bg-secondary/80"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-secondary px-6 text-sm font-medium text-secondary-foreground transition-all hover:bg-secondary/80"
               >
                 {tr("hero.shop")}
               </Link>
             </motion.div>
+
             <motion.div
               variants={fadeUp}
               custom={4}
-              className="mt-8 flex gap-6 text-sm text-muted-foreground"
+              className="mt-8 flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-6"
             >
               <span className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4" /> {heroSalonsLabel}
@@ -133,23 +110,28 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20">
-        <div className="flex items-end justify-between">
+      <section className="page-shell page-section">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">{tr("masters.title")}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{tr("masters.subtitle")}</p>
+            <h2 className="section-title">{tr("masters.title")}</h2>
+            <p className="section-subtitle">{tr("masters.subtitle")}</p>
           </div>
           <Link
             to="/masters"
-            className="hidden items-center gap-1 text-sm font-medium text-foreground hover:underline sm:flex"
+            className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:underline sm:self-end"
           >
             {tr("masters.all")} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
+
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {mastersLoading && masters.length === 0 &&
+          {mastersLoading &&
+            masters.length === 0 &&
             Array.from({ length: 4 }).map((_, index) => (
-              <div key={`master-skeleton-${index}`} className="h-[360px] animate-pulse rounded-2xl bg-secondary/60" />
+              <div
+                key={`master-skeleton-${index}`}
+                className="h-[360px] animate-pulse rounded-2xl bg-secondary/60"
+              />
             ))}
 
           {!mastersLoading && mastersError && (
@@ -170,38 +152,44 @@ const Index = () => {
             </div>
           )}
 
-          {!mastersLoading && !mastersError && masters.map((master, index) => (
-            <motion.div
-              key={master.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.4 }}
-            >
-              <MasterCard master={master} />
-            </motion.div>
-          ))}
+          {!mastersLoading &&
+            !mastersError &&
+            masters.map((master, index) => (
+              <motion.div
+                key={master.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.4 }}
+              >
+                <MasterCard master={master} />
+              </motion.div>
+            ))}
         </div>
       </section>
 
       <section className="bg-secondary/40">
-        <div className="mx-auto max-w-7xl px-6 py-20">
-          <div className="flex items-end justify-between">
+        <div className="page-shell page-section">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold">{tr("products.title")}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{tr("products.subtitle")}</p>
+              <h2 className="section-title">{tr("products.title")}</h2>
+              <p className="section-subtitle">{tr("products.subtitle")}</p>
             </div>
             <Link
               to="/shop"
-              className="hidden items-center gap-1 text-sm font-medium text-foreground hover:underline sm:flex"
+              className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:underline sm:self-end"
             >
               {tr("products.all")} <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {productsLoading && products.length === 0 &&
+            {productsLoading &&
+              products.length === 0 &&
               Array.from({ length: 4 }).map((_, index) => (
-                <div key={`product-skeleton-${index}`} className="h-[340px] animate-pulse rounded-2xl bg-card/70" />
+                <div
+                  key={`product-skeleton-${index}`}
+                  className="h-[340px] animate-pulse rounded-2xl bg-card/70"
+                />
               ))}
 
             {!productsLoading && productsError && (
@@ -222,27 +210,34 @@ const Index = () => {
               </div>
             )}
 
-            {!productsLoading && !productsError && products.slice(0, 4).map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1, duration: 0.4 }}
-              >
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
+            {!productsLoading &&
+              !productsError &&
+              products.slice(0, 4).map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1, duration: 0.4 }}
+                >
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20">
-        <h2 className="text-2xl font-semibold">{sectionTitleSalons(lang)}</h2>
+      <section className="page-shell page-section">
+        <h2 className="section-title">{tr("salons.title")}</h2>
+        <p className="section-subtitle">{tr("salons.subtitle")}</p>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {salonsLoading && salons.length === 0 &&
+          {salonsLoading &&
+            salons.length === 0 &&
             Array.from({ length: 3 }).map((_, index) => (
-              <div key={`salon-skeleton-${index}`} className="h-[148px] animate-pulse rounded-2xl bg-secondary/60" />
+              <div
+                key={`salon-skeleton-${index}`}
+                className="h-[148px] animate-pulse rounded-2xl bg-secondary/60"
+              />
             ))}
 
           {!salonsLoading && salonsError && (
@@ -263,17 +258,19 @@ const Index = () => {
             </div>
           )}
 
-          {!salonsLoading && !salonsError && salons.map((salon) => (
-            <div key={salon.id} className="rounded-2xl bg-card p-6 card-shadow">
-              <h3 className="font-semibold">{salon.name}</h3>
-              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5" /> {salon.address}
-              </p>
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" /> {salon.workHours}
-              </p>
-            </div>
-          ))}
+          {!salonsLoading &&
+            !salonsError &&
+            salons.map((salon) => (
+              <div key={salon.id} className="rounded-2xl bg-card p-5 card-shadow sm:p-6">
+                <h3 className="font-semibold">{salon.name}</h3>
+                <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5" /> {salon.address}
+                </p>
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" /> {salon.workHours}
+                </p>
+              </div>
+            ))}
         </div>
         <div className="mt-8">
           <SalonsMap locations={salons} />

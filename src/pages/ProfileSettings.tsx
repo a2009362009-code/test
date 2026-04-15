@@ -81,16 +81,16 @@ const ProfileSettings = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold">{tr("profile.settings.title")}</h1>
-          <p className="mt-1 text-muted-foreground">{tr("profile.settings.subtitle")}</p>
-        </div>
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-2xl font-semibold sm:text-3xl">{tr("profile.settings.title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+          {tr("profile.settings.subtitle")}
+        </p>
       </div>
 
       <form
-        className="space-y-4 rounded-2xl bg-card p-6 card-shadow"
+        className="surface-card space-y-4 p-5 card-shadow sm:p-6"
         onSubmit={(event) => {
           event.preventDefault();
           if (hasChanges) {
@@ -105,7 +105,7 @@ const ProfileSettings = () => {
           <input
             value={fullName}
             onChange={(event) => setFullName(event.target.value)}
-            className="w-full rounded-lg border-0 bg-secondary px-4 py-3 text-sm text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-foreground"
+            className="h-11 w-full rounded-lg border-0 bg-secondary px-4 text-sm text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-foreground"
             minLength={2}
             maxLength={120}
             required
@@ -120,7 +120,7 @@ const ProfileSettings = () => {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-lg border-0 bg-secondary px-4 py-3 text-sm text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-foreground"
+            className="h-11 w-full rounded-lg border-0 bg-secondary px-4 text-sm text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-foreground"
             required
           />
         </div>
@@ -132,7 +132,7 @@ const ProfileSettings = () => {
           <input
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
-            className="w-full rounded-lg border-0 bg-secondary px-4 py-3 text-sm text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-foreground"
+            className="h-11 w-full rounded-lg border-0 bg-secondary px-4 text-sm text-foreground outline-none ring-1 ring-border focus:ring-2 focus:ring-foreground"
             required
           />
         </div>
@@ -140,7 +140,7 @@ const ProfileSettings = () => {
         <button
           type="submit"
           disabled={!hasChanges || saveMutation.isPending}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+          className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         >
           <Save className="h-4 w-4" />
           {saveMutation.isPending ? tr("auth.submit.wait") : tr("profile.settings.save.action")}
@@ -151,4 +151,3 @@ const ProfileSettings = () => {
 };
 
 export default ProfileSettings;
-

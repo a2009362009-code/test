@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
 import { useI18n } from "@/lib/i18n";
@@ -17,42 +17,52 @@ const Shop = () => {
     ["women", tr("shop.women")],
   ];
 
-  const filtered = products.filter((p) => {
+  const filtered = products.filter((product) => {
     if (gender === "all") return true;
-    return p.category === gender || p.category === "unisex";
+    return product.category === gender || product.category === "unisex";
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12">
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <h1 className="text-3xl font-semibold">{tr("shop.title")}</h1>
-        <p className="mt-2 text-muted-foreground">{tr("shop.subtitle")}</p>
+    <div className="page-shell page-section">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
+        <h1 className="section-title">{tr("shop.title")}</h1>
+        <p className="section-subtitle">{tr("shop.subtitle")}</p>
       </motion.div>
 
-      <div className="mt-8 inline-flex rounded-xl bg-secondary p-1">
-        {genderOptions.map(([value, label]) => (
-          <button
-            key={value}
-            onClick={() => setGender(value)}
-            className={`rounded-lg px-5 py-2 text-sm font-medium transition-all duration-150 ${
-              gender === value
-                ? "bg-card text-foreground card-shadow"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="mt-6 surface-card p-3 sm:p-4">
+        <div className="chip-row">
+          {genderOptions.map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setGender(value)}
+              className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                gender === value
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/75"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {isLoading && products.length === 0 &&
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {isLoading &&
+          products.length === 0 &&
           Array.from({ length: 8 }).map((_, index) => (
-            <div key={`products-skeleton-${index}`} className="h-[340px] animate-pulse rounded-2xl bg-secondary/60" />
+            <div
+              key={`products-skeleton-${index}`}
+              className="h-[340px] animate-pulse rounded-2xl bg-secondary/60"
+            />
           ))}
 
         {!isLoading && isError && (
-          <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+          <div className="surface-card col-span-full p-6 text-center">
             <p className="text-sm text-muted-foreground">Could not load products.</p>
             <button
               className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
@@ -64,21 +74,23 @@ const Shop = () => {
         )}
 
         {!isLoading && !isError && filtered.length === 0 && (
-          <div className="col-span-full rounded-2xl border border-border bg-card p-6 text-center">
+          <div className="surface-card col-span-full p-6 text-center">
             <p className="text-sm text-muted-foreground">No products available.</p>
           </div>
         )}
 
-        {!isLoading && !isError && filtered.map((p, i) => (
-          <motion.div
-            key={p.id}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05, duration: 0.3 }}
-          >
-            <ProductCard product={p} />
-          </motion.div>
-        ))}
+        {!isLoading &&
+          !isError &&
+          filtered.map((product, index) => (
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.04, duration: 0.25 }}
+            >
+              <ProductCard product={product} />
+            </motion.div>
+          ))}
       </div>
     </div>
   );

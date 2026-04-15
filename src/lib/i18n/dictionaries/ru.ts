@@ -95,6 +95,7 @@ export const ruDictionary = {
   "booking.error.services": "Не удалось загрузить услуги. Попробуйте позже.",
   "booking.error.slots": "Не удалось загрузить слоты на выбранную дату.",
   "booking.error.create": "Не удалось создать запись.",
+  "booking.error.limitActive": "Достигнут лимит: максимум 2 активные записи.",
   "booking.error.title": "Ошибка",
   "booking.noslots": "На эту дату свободных слотов нет.",
   "footer.desc": "Точность в каждой линии. Премиальный сервис для современного стиля.",

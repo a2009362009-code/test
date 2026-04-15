@@ -6,11 +6,11 @@ const Footer = () => {
 
   return (
     <footer className="border-t border-border bg-secondary/50">
-      <div className="mx-auto max-w-7xl px-6 py-12">
+      <div className="page-shell py-10 sm:py-12">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <h3 className="text-lg font-semibold tracking-tighter">HairLine</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
               {tr("footer.desc")}
             </p>
           </div>
@@ -45,7 +45,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        <div className="mt-10 border-t border-border pt-6 text-center text-xs text-muted-foreground">
+        <div className="mt-8 border-t border-border pt-5 text-center text-xs text-muted-foreground sm:mt-10 sm:pt-6">
           {tr("common.copyright")} 2026 HairLine. {tr("footer.rights")}
         </div>
       </div>

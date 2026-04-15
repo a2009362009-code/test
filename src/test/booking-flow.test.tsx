@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import BookingDialog from "@/components/BookingDialog";
 import type { Master } from "@/data/masters";
+import { ApiError } from "@/lib/api";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
 const mockApi = vi.hoisted(() => ({
@@ -10,6 +11,7 @@ const mockApi = vi.hoisted(() => ({
   getSlots: vi.fn(),
   createBooking: vi.fn(),
 }));
+const toastSpy = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/api", async () => {
   const actual = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");
@@ -18,6 +20,10 @@ vi.mock("@/lib/api", async () => {
     api: mockApi,
   };
 });
+
+vi.mock("@/hooks/use-toast", () => ({
+  toast: toastSpy,
+}));
 
 vi.mock("@/components/ui/dialog", () => ({
   Dialog: ({ open, children }: { open: boolean; children: ReactNode }) =>
@@ -77,6 +83,7 @@ describe("Booking flow", () => {
         },
       }),
     );
+    localStorage.setItem("hairline-lang", "en");
   });
 
   it("creates booking for selected service/date/time", async () => {
@@ -119,6 +126,49 @@ describe("Booking flow", () => {
         date: "2099-12-31",
         time: "10:00",
       });
+    });
+  });
+
+  it("shows localized error when active booking limit is reached", async () => {
+    mockApi.getServices.mockResolvedValue([
+      {
+        id: 1,
+        name: "Classic haircut",
+        duration_minutes: 30,
+        price: "700",
+      },
+    ]);
+    mockApi.getSlots.mockResolvedValue([
+      {
+        id: 11,
+        barber_id: 1,
+        date: "2099-12-31",
+        time: "10:00",
+        status: "available",
+      },
+    ]);
+    mockApi.createBooking.mockRejectedValue(
+      new ApiError("Maximum 2 active bookings per user reached", 409),
+    );
+
+    renderWithProviders(<BookingDialog master={master} open onOpenChange={() => {}} />, {
+      route: "/masters/1",
+    });
+
+    fireEvent.click(await screen.findByRole("button", { name: /Classic haircut/i }));
+    fireEvent.click(await screen.findByRole("button", { name: "Select mocked date" }));
+    fireEvent.click(await screen.findByRole("button", { name: /10:00/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+
+    await waitFor(() => {
+      expect(toastSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: "destructive",
+          title: "Booking failed",
+          description:
+            "You already have 2 active bookings. Cancel one to create a new booking.",
+        }),
+      );
     });
   });
 });

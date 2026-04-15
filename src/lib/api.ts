@@ -4,7 +4,11 @@ import { masters } from "@/data/masters";
 import { products as seedProducts } from "@/data/products";
 import { salons as seedSalons } from "@/data/salons";
 import { services as seedServices } from "@/data/services";
-import { API_BASE_URL, USE_MOCK_API } from "@/lib/config";
+import {
+  API_BASE_URL,
+  MAX_ACTIVE_BOOKINGS_PER_USER,
+  USE_MOCK_API,
+} from "@/lib/config";
 
 export type ApiBarber = components["schemas"]["Barber"];
 export type ApiService = components["schemas"]["Service"];
@@ -150,6 +154,13 @@ function parseYears(value: string): number {
   if (!match) return 1;
   const parsed = Number(match[0]);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
+function toDateTime(date: string, time: string): Date | null {
+  const normalizedTime = time.length === 5 ? `${time}:00` : time;
+  const parsed = new Date(`${date}T${normalizedTime}`);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed;
 }
 
 function loadMockUsers(): MockUserRecord[] {
@@ -408,6 +419,19 @@ const mockApi = {
 
     if (conflict) {
       throw new ApiError("Selected time slot is not available", 409);
+    }
+
+    const now = new Date();
+    const activeBookingsCount = bookings.filter((booking) => {
+      if (booking.userId !== userId) return false;
+      const startsAt = toDateTime(booking.date, booking.time);
+      return startsAt ? startsAt.getTime() >= now.getTime() : false;
+    }).length;
+    if (activeBookingsCount >= MAX_ACTIVE_BOOKINGS_PER_USER) {
+      throw new ApiError(
+        `Maximum ${MAX_ACTIVE_BOOKINGS_PER_USER} active bookings per user reached`,
+        409,
+      );
     }
 
     const nextId = bookings.reduce((max, booking) => Math.max(max, booking.id), 0) + 1;

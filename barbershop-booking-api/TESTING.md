@@ -118,6 +118,16 @@ try {
 
 Expected: `409`
 
+## Active Booking Limit (2 Future Bookings Per User)
+
+Create two future bookings for the same user with different times, then try a third one:
+
+Expected on third request:
+
+1. Status `409`
+2. Error contains `Maximum 2 active bookings per user reached`
+3. After cancelling one of existing future bookings, the next create request succeeds with `201`
+
 ## Admin Flow
 
 ```powershell

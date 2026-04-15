@@ -23,6 +23,11 @@ const Navbar = () => {
     { to: "/shop", label: tr("nav.shop") },
   ];
 
+  const isActiveLink = (to: string) => {
+    if (to === "/") return location.pathname === "/";
+    return location.pathname.startsWith(to);
+  };
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll);
@@ -49,23 +54,25 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
-        scrolled ? "bg-background/80 backdrop-blur-md nav-shadow" : "bg-transparent"
+      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-200 ${
+        scrolled
+          ? "border-b border-border/80 bg-background/90 backdrop-blur-md nav-shadow"
+          : "bg-background/75 backdrop-blur-sm"
       }`}
     >
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <Link to="/" className="text-xl font-semibold tracking-tighter text-foreground">
+      <nav className="page-shell flex h-14 items-center justify-between sm:h-16">
+        <Link to="/" className="text-[1.7rem] font-semibold tracking-tighter text-foreground leading-none">
           HairLine
         </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-7 md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
               className={`text-sm transition-colors duration-150 ${
-                location.pathname === link.to
-                  ? "text-foreground font-medium"
+                isActiveLink(link.to)
+                  ? "font-semibold text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -77,7 +84,7 @@ const Navbar = () => {
         <div className="hidden items-center gap-3 md:flex">
           <Link
             to="/cart"
-            className="relative inline-flex items-center justify-center rounded-full bg-secondary/80 p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-secondary/80 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <motion.span
               animate={badgePulse ? { scale: [1, 1.3, 1] } : { scale: 1 }}
@@ -97,14 +104,14 @@ const Navbar = () => {
             <>
               <Link
                 to="/profile"
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
+                className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
               >
                 <User className="h-4 w-4" />
                 {tr("nav.profile")}
               </Link>
               <button
                 onClick={logout}
-                className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+                className="inline-flex h-9 items-center rounded-lg bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
               >
                 {tr("nav.logout")}
               </button>
@@ -112,7 +119,7 @@ const Navbar = () => {
           ) : (
             <Link
               to="/auth"
-              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
+              className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
             >
               <User className="h-4 w-4" />
               {tr("nav.login")}
@@ -123,7 +130,7 @@ const Navbar = () => {
         <div className="flex items-center gap-2 md:hidden">
           <Link
             to="/cart"
-            className="relative inline-flex items-center justify-center rounded-full bg-secondary/80 p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-secondary/80 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <ShoppingCart className="h-5 w-5" />
             {totalItems > 0 && (
@@ -135,7 +142,8 @@ const Navbar = () => {
           <LanguageSwitcher />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="text-foreground"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-secondary/80 text-foreground transition-colors hover:bg-secondary"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -145,50 +153,52 @@ const Navbar = () => {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden border-b border-border bg-background md:hidden"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="border-b border-border bg-background/95 backdrop-blur-md md:hidden"
           >
-            <div className="flex flex-col gap-1 px-6 py-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                    location.pathname === link.to
-                      ? "bg-secondary text-foreground font-medium"
-                      : "text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {isAuthenticated ? (
-                <>
+            <div className="page-shell pb-4 pt-2">
+              <div className="space-y-1 rounded-2xl border border-border bg-card p-2 shadow-sm">
+                {navLinks.map((link) => (
                   <Link
-                    to="/profile"
+                    key={link.to}
+                    to={link.to}
+                    className={`block rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                      isActiveLink(link.to)
+                        ? "bg-secondary font-medium text-foreground"
+                        : "text-muted-foreground hover:bg-secondary/80"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/profile"
+                      className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
+                    >
+                      <User className="h-4 w-4" />
+                      {tr("nav.profile")}
+                    </Link>
+                    <button
+                      onClick={logout}
+                      className="mt-2 w-full rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground"
+                    >
+                      {tr("nav.logout")}
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/auth"
                     className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
                   >
                     <User className="h-4 w-4" />
-                    {tr("nav.profile")}
+                    {tr("nav.login")}
                   </Link>
-                  <button
-                    onClick={logout}
-                    className="mt-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground"
-                  >
-                    {tr("nav.logout")}
-                  </button>
-                </>
-              ) : (
-                <Link
-                  to="/auth"
-                  className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground"
-                >
-                  <User className="h-4 w-4" />
-                  {tr("nav.login")}
-                </Link>
-              )}
+                )}
+              </div>
             </div>
           </motion.div>
         )}

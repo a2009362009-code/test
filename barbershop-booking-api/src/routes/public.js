@@ -4,6 +4,7 @@ const { pool } = require('../db/pool');
 const { signAccessToken, getJwtConfig } = require('../auth/jwt');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { createRateLimit } = require('../middleware/rate-limit');
+const { getMaxActiveBookingsPerUser } = require('../config/bookings');
 const {
   bookingSchema,
   barbersQuerySchema,
@@ -651,12 +652,30 @@ router.post('/bookings', requireAuth, requireRole('user'), async (req, res, next
     await client.query('BEGIN');
 
     const userRes = await client.query(
-      'SELECT id, full_name, phone FROM users WHERE id = $1',
+      'SELECT id, full_name, phone FROM users WHERE id = $1 FOR UPDATE',
       [userId]
     );
     if (!userRes.rowCount) {
       await client.query('ROLLBACK');
       return res.status(401).json({ error: 'User not found' });
+    }
+
+    const maxActiveBookings = getMaxActiveBookingsPerUser();
+    const activeBookingsRes = await client.query(
+      `
+      SELECT COUNT(*)::int AS active_count
+      FROM bookings
+      WHERE user_id = $1
+        AND (date::timestamp + time) >= NOW()
+      `,
+      [userId]
+    );
+    const activeCount = Number(activeBookingsRes.rows[0]?.active_count || 0);
+    if (activeCount >= maxActiveBookings) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({
+        error: `Maximum ${maxActiveBookings} active bookings per user reached`
+      });
     }
 
     const serviceRes = await client.query(

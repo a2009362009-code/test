@@ -9,13 +9,13 @@ const Profile = () => {
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-3xl items-center justify-center px-6 py-12">
-        <div className="w-full rounded-2xl bg-card p-8 text-center card-shadow">
-          <h1 className="text-2xl font-semibold">{tr("profile.title")}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{tr("profile.guest.desc")}</p>
+      <div className="page-shell page-section">
+        <div className="mx-auto w-full max-w-3xl rounded-3xl border border-border bg-card p-8 text-center card-shadow sm:p-10">
+          <h1 className="section-title">{tr("profile.title")}</h1>
+          <p className="section-subtitle">{tr("profile.guest.desc")}</p>
           <Link
             to="/auth?redirect=%2Fprofile"
-            className="mt-6 inline-flex rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+            className="mt-6 inline-flex h-10 items-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             {tr("auth.submit.login")}
           </Link>
@@ -49,17 +49,17 @@ const Profile = () => {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12">
-      <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-        <aside className="space-y-6 rounded-3xl border border-border bg-card/80 p-5 shadow-sm">
-          <div>
+    <div className="page-shell page-section">
+      <div className="grid gap-6 xl:grid-cols-[280px_1fr]">
+        <aside className="surface-card h-fit p-4 shadow-sm xl:sticky xl:top-20">
+          <div className="border-b border-border px-1 pb-4">
             <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               {tr("profile.title")}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">{tr("profile.subtitle")}</p>
           </div>
 
-          <nav className="space-y-2">
+          <nav className="mt-4 space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -68,7 +68,7 @@ const Profile = () => {
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                    `flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition ${
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
@@ -82,38 +82,35 @@ const Profile = () => {
             })}
           </nav>
 
-          <Link
-            to="/shop"
-            className="inline-flex items-center justify-center rounded-2xl bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80"
-          >
-            {tr("nav.shop")}
-          </Link>
-
-          <button
-            onClick={logout}
-            className="inline-flex items-center justify-center rounded-2xl bg-destructive px-4 py-3 text-sm font-medium text-destructive-foreground transition hover:bg-destructive/90"
-          >
-            <LogOut className="h-4 w-4" />
-            {tr("nav.logout")}
-          </button>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link
+              to="/cart"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-secondary px-4 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80"
+            >
+              {tr("nav.cart")}
+            </Link>
+            <Link
+              to="/shop"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-secondary px-4 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80"
+            >
+              {tr("nav.shop")}
+            </Link>
+            <button
+              onClick={logout}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-destructive px-4 text-sm font-medium text-destructive-foreground transition hover:bg-destructive/90"
+            >
+              <LogOut className="h-4 w-4" />
+              {tr("nav.logout")}
+            </button>
+          </div>
         </aside>
 
-        <main className="space-y-8">
-          <div className="rounded-3xl border border-border bg-card/80 p-6 shadow-sm">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h1 className="text-3xl font-semibold">{tr("profile.title")}</h1>
-                <p className="mt-1 text-muted-foreground">{tr("profile.subtitle")}</p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  to="/cart"
-                  className="rounded-2xl bg-secondary px-4 py-3 text-sm font-medium text-foreground transition hover:bg-secondary/80"
-                >
-                  {tr("nav.cart")}
-                </Link>
-              </div>
-            </div>
+        <main className="space-y-5">
+          <div className="surface-card p-5 shadow-sm sm:p-6">
+            <h1 className="text-2xl font-semibold sm:text-3xl">{tr("profile.title")}</h1>
+            <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+              {tr("profile.subtitle")}
+            </p>
           </div>
 
           <Outlet />

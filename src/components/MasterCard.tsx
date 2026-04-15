@@ -15,7 +15,7 @@ const MasterCard = ({ master }: { master: Master }) => {
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-        className="group relative overflow-hidden rounded-2xl bg-card card-shadow transition-shadow duration-200 hover:card-shadow-hover"
+        className="group relative overflow-hidden rounded-2xl border border-border bg-card card-shadow transition-shadow duration-200 hover:card-shadow-hover"
       >
         <Link to={`/masters/${master.id}`} className="block">
           <div className="aspect-[3/4] overflow-hidden">
@@ -27,7 +27,7 @@ const MasterCard = ({ master }: { master: Master }) => {
             />
           </div>
         </Link>
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           <div className="flex items-start justify-between gap-2">
             <div>
               <Link to={`/masters/${master.id}`} className="hover:underline">
@@ -36,7 +36,7 @@ const MasterCard = ({ master }: { master: Master }) => {
               <p className="text-sm text-muted-foreground">
                 {tv("role", master.role)} - {formatYears(master.experience)}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="line-clamp-1 text-xs text-muted-foreground">
                 {master.salonName || tr("masters.unassignedSalon")}
               </p>
             </div>
@@ -54,7 +54,7 @@ const MasterCard = ({ master }: { master: Master }) => {
           <button
             onClick={() => setBookingOpen(true)}
             disabled={!master.available}
-            className="mt-4 flex w-full items-center justify-center rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-all duration-150 hover:bg-primary/90 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none"
+            className="mt-4 flex h-10 w-full items-center justify-center rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-all duration-150 hover:bg-primary/90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
           >
             {master.available ? tr("master.book") : tr("master.nobook")}
           </button>

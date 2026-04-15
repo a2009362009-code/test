@@ -1201,11 +1201,25 @@
             }
           },
           "409": {
-            "description": "Slot not available",
+            "description": "Conflict: slot is unavailable or active booking limit is reached",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "slotUnavailable": {
+                    "summary": "Selected slot is already booked",
+                    "value": {
+                      "error": "Selected time slot is not available"
+                    }
+                  },
+                  "activeBookingLimit": {
+                    "summary": "User has reached maximum active bookings",
+                    "value": {
+                      "error": "Maximum 2 active bookings per user reached"
+                    }
+                  }
                 }
               }
             }

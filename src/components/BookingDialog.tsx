@@ -31,6 +31,7 @@ interface BookingDialogProps {
 }
 
 const toTime = (value: string) => value.slice(0, 5);
+const ACTIVE_BOOKING_LIMIT_ERROR = "active bookings per user";
 
 const toDateParam = (value: Date) => {
   const year = value.getFullYear();
@@ -111,8 +112,16 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
         })}, ${selectedTime}`,
       });
     } catch (error) {
-      const description =
-        error instanceof ApiError ? error.message : tr("booking.error.create");
+      let description = tr("booking.error.create");
+      if (error instanceof ApiError) {
+        description = error.message;
+        if (
+          error.status === 409 &&
+          error.message.toLowerCase().includes(ACTIVE_BOOKING_LIMIT_ERROR)
+        ) {
+          description = tr("booking.error.limitActive");
+        }
+      }
       toast({
         variant: "destructive",
         title: tr("booking.error.title"),
@@ -123,15 +132,15 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[calc(100vw-1rem)] max-h-[90vh] max-w-lg overflow-y-auto rounded-2xl p-4 sm:max-w-md sm:p-6">
         <DialogHeader>
-          <DialogTitle>{tr("booking.title")}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-left text-xl">{tr("booking.title")}</DialogTitle>
+          <DialogDescription className="text-left text-sm">
             {master.name} - {tv("role", master.role)}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-2">
           {[1, 2, 3].map((progressStep) => (
             <div
               key={progressStep}
@@ -153,7 +162,7 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
               className="space-y-3"
             >
               <p className="text-sm font-medium">{tr("booking.selectservice")}</p>
-              <div className="max-h-60 space-y-2 overflow-y-auto pr-1">
+              <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
                 {servicesQuery.isLoading && (
                   <p className="text-sm text-muted-foreground">{tr("booking.loading.services")}</p>
                 )}
@@ -170,7 +179,7 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
                       setStep(2);
                     }}
                     className={cn(
-                      "flex w-full items-center justify-between rounded-lg border p-3 text-left transition-all hover:border-primary/50",
+                      "flex w-full items-center justify-between rounded-xl border p-3 text-left transition-all hover:border-primary/50",
                       selectedService?.id === service.id
                         ? "border-primary bg-primary/5"
                         : "border-border",
@@ -205,7 +214,7 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "h-11 w-full justify-start rounded-xl text-left font-normal",
                       !selectedDate && "text-muted-foreground",
                     )}
                   >
@@ -238,7 +247,7 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
                   />
                 </PopoverContent>
               </Popover>
-              <Button variant="ghost" size="sm" onClick={() => setStep(1)}>
+              <Button variant="ghost" size="sm" className="h-9 rounded-lg" onClick={() => setStep(1)}>
                 {tr("booking.back")}
               </Button>
             </motion.div>
@@ -266,13 +275,13 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
                   {tr("booking.noslots")}
                 </p>
               )}
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {availableTimes.map((time) => (
                   <button
                     key={time}
                     onClick={() => setSelectedTime(time)}
                     className={cn(
-                      "flex items-center justify-center gap-1 rounded-lg border px-2 py-2 text-sm transition-all",
+                      "flex h-10 items-center justify-center gap-1 rounded-xl border px-2 py-2 text-sm transition-all",
                       selectedTime === time
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border hover:border-primary/50",
@@ -283,12 +292,13 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
                   </button>
                 ))}
               </div>
-              <div className="flex items-center justify-between pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setStep(2)}>
+              <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:items-center sm:justify-between">
+                <Button variant="ghost" size="sm" className="h-10 rounded-lg" onClick={() => setStep(2)}>
                   {tr("booking.back")}
                 </Button>
                 <Button
                   size="sm"
+                  className="h-10 rounded-lg px-5"
                   disabled={!selectedTime || !selectedService}
                   onClick={handleConfirm}
                 >
@@ -303,7 +313,7 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
               key="step4"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center gap-4 py-6 text-center"
+              className="flex flex-col items-center gap-4 py-4 text-center sm:py-6"
             >
               <CheckCircle2 className="h-12 w-12 text-accent" />
               <div>
@@ -322,7 +332,7 @@ const BookingDialog = ({ master, open, onOpenChange }: BookingDialogProps) => {
                   {price(Number(selectedService.price))}
                 </p>
               </div>
-              <Button onClick={() => handleClose(false)} className="mt-2">
+              <Button onClick={() => handleClose(false)} className="mt-2 h-10 rounded-lg px-5">
                 {tr("booking.close")}
               </Button>
             </motion.div>
