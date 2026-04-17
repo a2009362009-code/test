@@ -6,13 +6,17 @@
 
 ```powershell
 npm install
-Copy-Item .env.example .env
 npm run dev
 ```
 
 ## Environment
 
-- `VITE_API_BASE_URL` - backend base URL (example: `https://test-4p5l.onrender.com`)
+- `.env` is optional.
+- By default admin panel auto-detects API base:
+  - `localhost`/`127.0.0.1` -> `http://localhost:4000`
+  - any other host -> `https://test-4p5l.onrender.com`
+- Optional override:
+  - `VITE_API_BASE_URL=<your-api-base-url>`
 
 ## What is implemented
 

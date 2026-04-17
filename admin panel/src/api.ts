@@ -1,6 +1,27 @@
 import type { EntityRecord, ListParams, ListPayload, ResourceAdapter } from "./types";
 
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() || "https://test-4p5l.onrender.com";
+const DEFAULT_REMOTE_API_BASE_URL = "https://test-4p5l.onrender.com";
+const DEFAULT_LOCAL_API_BASE_URL = "http://localhost:4000";
+
+function stripTrailingSlash(url: string) {
+  return url.replace(/\/+$/, "");
+}
+
+function detectApiBaseUrl() {
+  const fromEnv = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+  if (fromEnv) return stripTrailingSlash(fromEnv);
+
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return DEFAULT_LOCAL_API_BASE_URL;
+    }
+  }
+
+  return DEFAULT_REMOTE_API_BASE_URL;
+}
+
+export const API_BASE_URL = detectApiBaseUrl();
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
