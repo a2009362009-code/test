@@ -1,0 +1,97 @@
+import { FormEvent, useMemo, useState } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth";
+import { ApiError } from "../api";
+import { ensureKyrgyzPhonePrefix, isValidKyrgyzPhone, KYRGYZ_PHONE_PREFIX } from "../utils/phone";
+
+function formatError(error: unknown) {
+  if (error instanceof ApiError) return `${error.message} (HTTP ${error.status})`;
+  if (error instanceof Error) return error.message;
+  return "Unknown error";
+}
+
+export function LoginPage() {
+  const { isAuthenticated, login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [phone, setPhone] = useState(KYRGYZ_PHONE_PREFIX);
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const targetPath = useMemo(() => {
+    const state = location.state as { from?: string } | null;
+    return state?.from || "/admins";
+  }, [location.state]);
+
+  if (isAuthenticated) return <Navigate to="/admins" replace />;
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!isValidKyrgyzPhone(phone)) {
+      setError("Введите телефон в формате +996XXXXXXXXX");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+    try {
+      await login({ phone, password });
+      navigate(targetPath, { replace: true });
+    } catch (submitError) {
+      setError(formatError(submitError));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="login-layout">
+      <div className="login-hero">
+        <p className="eyebrow">HairLine</p>
+        <h1>Панель администратора</h1>
+        <p>
+          Управление сущностями PostgreSQL через `/api/admin/*`.
+          <br />
+          Авторизация только для `admins` (phone + password).
+        </p>
+      </div>
+
+      <form className="login-card" onSubmit={submit}>
+        <h2>Вход</h2>
+
+        <label>
+          Телефон
+          <input
+            type="tel"
+            value={phone}
+            onChange={(event) => setPhone(ensureKyrgyzPhonePrefix(event.target.value))}
+            inputMode="numeric"
+            pattern="^\+996\d{9}$"
+            placeholder="+996000000000"
+            required
+          />
+        </label>
+
+        <label>
+          Пароль
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            minLength={6}
+            maxLength={50}
+            required
+          />
+        </label>
+
+        {error ? <div className="panel-error">{error}</div> : null}
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Вход..." : "Войти"}
+        </button>
+      </form>
+    </main>
+  );
+}
+
