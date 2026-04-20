@@ -17,7 +17,7 @@ const ProductCard = ({ product, onProductClick }: { product: Product; onProductC
       onClick={handleCardClick}
       className="group surface-card overflow-hidden card-shadow transition-shadow duration-200 hover:card-shadow-hover cursor-pointer"
     >
-      <div className="aspect-square overflow-hidden bg-secondary">
+      <div className="h-28 rounded-lg md:aspect-square overflow-hidden bg-secondary">
         <img
           src={product.image}
           alt={product.name}
@@ -25,11 +25,11 @@ const ProductCard = ({ product, onProductClick }: { product: Product; onProductC
           loading="lazy"
         />
       </div>
-      <div className="p-4 sm:p-5">
+      <div className="p-2 sm:p-4 md:p-5">
         <p className="text-xs text-muted-foreground">{tv("productType", product.type)}</p>
-        <h3 className="mt-1 line-clamp-2 text-sm font-semibold tracking-tight sm:min-h-[2.5rem]">{product.name}</h3>
+        <h3 className="mt-1 line-clamp-2 text-sm sm:text-sm font-medium tracking-tight sm:min-h-[2.5rem]">{product.name}</h3>
         <div className="mt-3 flex items-center justify-between gap-3">
-          <span className="tabular text-sm font-semibold">{price(product.price)}</span>
+          <span className="tabular text-sm sm:text-sm font-medium">{price(product.price)}</span>
           <div onClick={(e) => e.stopPropagation()}>
             <AddToCartButton
               product={product}

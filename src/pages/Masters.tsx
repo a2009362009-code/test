@@ -132,13 +132,13 @@ const Masters = () => {
 
           <div
             ref={mastersScrollRef}
-            className="flex flex-row flex-nowrap gap-6 overflow-x-auto scroll-smooth pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:overflow-visible md:pb-0"
+            className="flex overflow-x-auto gap-3 px-3 scroll-smooth snap-x snap-mandatory pb-4 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:overflow-visible md:pb-0"
           >
             {isLoading && masters.length === 0 &&
               Array.from({ length: 8 }).map((_, index) => (
                 <div
                   key={`masters-skeleton-${index}`}
-                  className="min-w-[260px] flex-shrink-0 h-[360px] animate-pulse rounded-2xl bg-secondary/60"
+                  className="min-w-\[144px\] flex-shrink-0 h-\[280px\] animate-pulse rounded-2xl bg-secondary/60"
                 />
               ))}
 
@@ -168,7 +168,7 @@ const Masters = () => {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.04, duration: 0.25 }}
-                  className="min-w-[260px] flex-shrink-0 md:min-w-0 md:w-auto"
+                  className="w-[75%] max-w-[220px] snap-start shrink-0 md:min-w-0 md:w-auto"
                 >
                   <MasterCard master={master} />
                 </motion.div>
