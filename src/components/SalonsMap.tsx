@@ -25,9 +25,13 @@ function ensureMarkerIconsConfigured() {
 const SalonsMap = ({ locations }: { locations: Salon[] }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const { tr } = useI18n();
+  const validLocations = locations.filter(
+    (location) =>
+      Number.isFinite(location.latitude) && Number.isFinite(location.longitude),
+  );
 
   useEffect(() => {
-    if (!mapContainerRef.current || locations.length === 0) return;
+    if (!mapContainerRef.current || validLocations.length === 0) return;
 
     ensureMarkerIconsConfigured();
 
@@ -42,7 +46,7 @@ const SalonsMap = ({ locations }: { locations: Salon[] }) => {
 
     const group = L.featureGroup();
 
-    locations.forEach((location) => {
+    validLocations.forEach((location) => {
       const marker = L.marker([location.latitude, location.longitude]).bindPopup(
         `<strong>${location.name}</strong><br/>${location.address}`,
       );
@@ -51,8 +55,8 @@ const SalonsMap = ({ locations }: { locations: Salon[] }) => {
 
     group.addTo(map);
 
-    if (locations.length === 1) {
-      map.setView([locations[0].latitude, locations[0].longitude], 14);
+    if (validLocations.length === 1) {
+      map.setView([validLocations[0].latitude, validLocations[0].longitude], 14);
     } else {
       map.fitBounds(group.getBounds().pad(0.2));
     }
@@ -60,9 +64,9 @@ const SalonsMap = ({ locations }: { locations: Salon[] }) => {
     return () => {
       map.remove();
     };
-  }, [locations, tr]);
+  }, [validLocations, tr]);
 
-  if (!locations.length) {
+  if (!validLocations.length) {
     return (
       <div className="flex h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-card text-sm text-muted-foreground sm:h-[360px]">
         {tr("salons.map.empty")}

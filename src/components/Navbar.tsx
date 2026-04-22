@@ -1,18 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, ShoppingCart, MapPin } from "lucide-react";
+import { Menu, X, User, ShoppingCart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
-import MapModal from "@/components/MapModal";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [badgePulse, setBadgePulse] = useState(false);
-  const [isMapOpen, setIsMapOpen] = useState(false);
   const location = useLocation();
   const { tr } = useI18n();
   const { isAuthenticated } = useAuth();
@@ -145,8 +143,6 @@ const Navbar = () => {
           </button>
         </div>
       </nav>
-
-      {isMapOpen && <MapModal onClose={() => setIsMapOpen(false)} />}
 
       <AnimatePresence>
         {mobileOpen && (

@@ -105,7 +105,7 @@ const Shop = () => {
             Array.from({ length: 8 }).map((_, index) => (
               <div
                 key={`products-skeleton-${index}`}
-                className="min-w-\[144px\] flex-shrink-0 h-\[260px\] animate-pulse rounded-2xl bg-secondary/60"
+                className="min-w-[144px] h-[260px] flex-shrink-0 animate-pulse rounded-2xl bg-secondary/60"
               />
             ))}
 
@@ -135,7 +135,7 @@ const Shop = () => {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.04, duration: 0.25 }}
-                className="min-w-\[144px\] flex-shrink-0 md:min-w-0 md:w-auto"
+                className="min-w-[144px] flex-shrink-0 md:min-w-0 md:w-auto"
               >
                 <ProductCard product={product} onProductClick={handleOpenModal} />
               </motion.div>

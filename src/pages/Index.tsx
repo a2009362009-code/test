@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Clock, MapPin } from "lucide-react";
+import { Clock, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-barber.jpg";
 import MapModal from "@/components/MapModal";
@@ -20,21 +20,6 @@ const fadeUp = {
   }),
 };
 
-const branchLocations = [
-  {
-    titleKey: "home.branch.bishkek.title",
-    descriptionKey: "home.branch.bishkek.desc",
-  },
-  {
-    titleKey: "home.branch.tokmok.title",
-    descriptionKey: "home.branch.tokmok.desc",
-  },
-  {
-    titleKey: "home.branch.osh.title",
-    descriptionKey: "home.branch.osh.desc",
-  },
-];
-
 const galleryImages = [gallery1, gallery2, gallery3, gallery4];
 
 const Index = () => {
@@ -42,9 +27,17 @@ const Index = () => {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const { salons, isLoading: salonsLoading, isError: salonsError, refetch: refetchSalons } = useSalons();
 
+  const mapSalons = useMemo(
+    () =>
+      salons.filter(
+        (salon) => Number.isFinite(salon.latitude) && Number.isFinite(salon.longitude),
+      ),
+    [salons],
+  );
+
   const heroSalonsLabel = useMemo(
-    () => tr("hero.locationCount", { count: salons.length }),
-    [salons.length, tr],
+    () => tr("hero.locationCount", { count: mapSalons.length }),
+    [mapSalons.length, tr],
   );
 
   return (
@@ -97,7 +90,7 @@ const Index = () => {
                   type="button"
                   onClick={() => setIsMapOpen(true)}
                   className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
-                  aria-label="Открыть карту салонов"
+                  aria-label={tr("salons.map.open")}
                 >
                   <MapPin className="h-5 w-5" />
                 </button>
@@ -176,12 +169,42 @@ const Index = () => {
         </div>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {branchLocations.map((branch) => (
-            <div key={branch.titleKey} className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-              <p className="text-xl font-semibold text-foreground">{tr(branch.titleKey)}</p>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">{tr(branch.descriptionKey)}</p>
+          {salonsLoading &&
+            Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`salons-skeleton-${index}`}
+                className="h-32 animate-pulse rounded-3xl border border-border bg-card"
+              />
+            ))}
+
+          {!salonsLoading && salonsError && (
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm sm:col-span-2 lg:col-span-3">
+              <p className="text-sm leading-6 text-muted-foreground">{tr("salons.map.error")}</p>
+              <button
+                type="button"
+                onClick={() => refetchSalons()}
+                className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+              >
+                {tr("common.retry")}
+              </button>
             </div>
-          ))}
+          )}
+
+          {!salonsLoading &&
+            !salonsError &&
+            salons.map((salon) => (
+              <div key={salon.id} className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+                <p className="text-xl font-semibold text-foreground">{salon.name}</p>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">{salon.address}</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{salon.workHours}</p>
+              </div>
+            ))}
+
+          {!salonsLoading && !salonsError && salons.length === 0 && (
+            <div className="rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-sm sm:col-span-2 lg:col-span-3">
+              {tr("home.branches.empty")}
+            </div>
+          )}
         </div>
       </section>
 
@@ -211,7 +234,15 @@ const Index = () => {
         </div>
       </section>
 
-      {isMapOpen && <MapModal onClose={() => setIsMapOpen(false)} />}
+      {isMapOpen && (
+        <MapModal
+          onClose={() => setIsMapOpen(false)}
+          salons={mapSalons}
+          isLoading={salonsLoading}
+          isError={salonsError}
+          onRetry={() => refetchSalons()}
+        />
+      )}
     </div>
   );
 };

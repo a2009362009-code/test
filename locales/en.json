@@ -283,5 +283,10 @@
   "currency": "KGS",
   "profile.settings.password.error.maxLength": "New password must be at most 50 characters.",
   "cart.error.load": "Failed to load cart.",
-  "cart.error.update": "Failed to update cart."
+  "cart.error.update": "Failed to update cart.",
+  "home.branches.empty": "No active salon locations available.",
+  "salons.map.open": "Open salons map",
+  "salons.map.modalTitle": "Our salons on the map",
+  "salons.map.loading": "Loading salon locations...",
+  "salons.map.error": "Could not load salon locations. Please try again."
 }

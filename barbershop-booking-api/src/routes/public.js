@@ -60,6 +60,8 @@ router.get('/salons', async (req, res, next) => {
         updated_at
       FROM salons
       WHERE is_active = true
+        AND latitude IS NOT NULL
+        AND longitude IS NOT NULL
       ORDER BY sort_order ASC, id ASC
       `
     );

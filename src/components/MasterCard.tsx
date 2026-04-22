@@ -18,7 +18,7 @@ const MasterCard = ({ master }: { master: Master }) => {
         className="group relative overflow-hidden rounded-2xl border border-border bg-card card-shadow transition-shadow duration-200 hover:card-shadow-hover"
       >
         <Link to={`/masters/${master.id}`} className="block">
-          <div className="h-28 overflow-hidden rounded-lg md:h-28 rounded-lg md:aspect-\[3/4\]">
+          <div className="h-28 overflow-hidden rounded-lg md:h-28 md:aspect-[3/4]">
             <img
               src={master.image}
               alt={master.name}

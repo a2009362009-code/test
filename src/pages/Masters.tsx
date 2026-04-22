@@ -138,7 +138,7 @@ const Masters = () => {
               Array.from({ length: 8 }).map((_, index) => (
                 <div
                   key={`masters-skeleton-${index}`}
-                  className="min-w-\[144px\] flex-shrink-0 h-\[280px\] animate-pulse rounded-2xl bg-secondary/60"
+                  className="min-w-[144px] h-[280px] flex-shrink-0 animate-pulse rounded-2xl bg-secondary/60"
                 />
               ))}
 
