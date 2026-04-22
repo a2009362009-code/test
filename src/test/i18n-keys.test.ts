@@ -26,4 +26,17 @@ describe("i18n dictionaries", () => {
     expect(ruDictionary["profile.settings.password.title"].trim().length).toBeGreaterThan(0);
     expect(kyDictionary["profile.settings.password.title"].trim().length).toBeGreaterThan(0);
   });
+
+  it("should not contain placeholder question marks for critical ru/ky keys", () => {
+    const criticalKeys = [
+      "cart.error.load",
+      "cart.error.update",
+      "profile.settings.password.error.maxLength",
+    ] as const;
+
+    criticalKeys.forEach((key) => {
+      expect(ruDictionary[key]).not.toContain("???");
+      expect(kyDictionary[key]).not.toContain("???");
+    });
+  });
 });

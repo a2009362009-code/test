@@ -91,16 +91,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     loadCart(token)
       .catch((error) => {
-        const description =
-          error instanceof ApiError ? error.message : tr("cart.error.load");
-        toast({
-          variant: "destructive",
-          title: tr("booking.error.title"),
-          description,
-        });
+        // Silent bootstrap failure: keep UI stable and avoid aggressive startup toasts.
+        console.warn("[cart] Initial cart load failed", error);
+        setItems([]);
       })
       .finally(() => setIsLoading(false));
-  }, [loadCart, token, tr]);
+  }, [loadCart, token]);
 
   const withAuthCartUpdate = useCallback(
     async (updater: (authToken: string) => Promise<void>) => {

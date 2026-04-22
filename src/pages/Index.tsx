@@ -35,10 +35,15 @@ const Index = () => {
     [salons],
   );
 
-  const heroSalonsLabel = useMemo(
-    () => tr("hero.locationCount", { count: mapSalons.length }),
-    [mapSalons.length, tr],
-  );
+  const heroSalonsLabel = useMemo(() => {
+    if (salonsLoading) {
+      return tr("hero.locationLoading");
+    }
+    if (salonsError) {
+      return tr("hero.locationUnavailable");
+    }
+    return tr("hero.locationCount", { count: mapSalons.length });
+  }, [mapSalons.length, salonsError, salonsLoading, tr]);
 
   return (
     <div>

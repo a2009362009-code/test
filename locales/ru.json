@@ -281,12 +281,14 @@
   "service.balayage": "Балаяж",
   "service.hair_treatment": "Уход за волосами",
   "currency": "сом",
-  "profile.settings.password.error.maxLength": "????? ?????? ?????? ????????? ?? ????? 50 ????????.",
-  "cart.error.load": "?? ??????? ????????? ???????.",
-  "cart.error.update": "?? ??????? ???????? ???????.",
+  "profile.settings.password.error.maxLength": "Новый пароль должен быть не длиннее 50 символов.",
+  "cart.error.load": "Не удалось загрузить корзину.",
+  "cart.error.update": "Не удалось обновить корзину.",
   "home.branches.empty": "Нет локаций для отображения на карте.",
   "salons.map.open": "Карта салонов",
   "salons.map.modalTitle": "Карта салонов",
-  "salons.map.loading": "Загрузка слотов...",
-  "salons.map.error": "Не удалось загрузить товары. Пожалуйста, попробуйте снова."
+  "salons.map.loading": "Загрузка локаций салонов...",
+  "salons.map.error": "Не удалось загрузить локации салонов. Пожалуйста, попробуйте снова.",
+  "hero.locationLoading": "Загрузка салонов...",
+  "hero.locationUnavailable": "Салоны временно недоступны"
 }

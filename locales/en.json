@@ -288,5 +288,7 @@
   "salons.map.open": "Open salons map",
   "salons.map.modalTitle": "Our salons on the map",
   "salons.map.loading": "Loading salon locations...",
-  "salons.map.error": "Could not load salon locations. Please try again."
+  "salons.map.error": "Could not load salon locations. Please try again.",
+  "hero.locationLoading": "Loading salons...",
+  "hero.locationUnavailable": "Salons are temporarily unavailable"
 }
